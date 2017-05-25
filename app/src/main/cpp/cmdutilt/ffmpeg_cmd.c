@@ -20,13 +20,8 @@
 //    }
 //}
 
-JNIEXPORT jint JNICALL
-Java_com_luoye_bzmedia_FFmpegUtil_executeFFmpegCommand(JNIEnv
-                                                       *env, jclass type, jstring command_) {
-    int ret = 0;
-    const char *command = (*env)->GetStringUTFChars(env, command_, 0);
+int executeFFmpegCommand(const char *command) {
 
-//    av_log_set_callback(log_call_back);
     char str[1024] = {0};
 
     strlcpy(str, command, strlen(command) + 1);
@@ -43,7 +38,18 @@ Java_com_luoye_bzmedia_FFmpegUtil_executeFFmpegCommand(JNIEnv
     }
     //手动告诉它结束了,防止出现意外
     argv[index] = 0;
-    ret = run(index, argv);
+    return run(index, argv);
+}
+
+JNIEXPORT jint JNICALL
+Java_com_luoye_bzmedia_FFmpegUtil_executeFFmpegCommand(JNIEnv
+                                                       *env, jclass type, jstring command_) {
+    int ret = 0;
+    const char *command = (*env)->GetStringUTFChars(env, command_, 0);
+
+//    av_log_set_callback(log_call_back);
+    ret = executeFFmpegCommand(command);
+
     (*env)->ReleaseStringUTFChars(env, command_, command);
     return ret;
 }
