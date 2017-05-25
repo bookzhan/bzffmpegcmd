@@ -9,7 +9,7 @@ Java_com_luoye_bzmedia_FFmpegUtil_executeFFmpegCommand(JNIEnv
     const char *command = (*env)->GetStringUTFChars(env, command_, 0);
 
     char str[1024] = {0};
-    strcpy(str, command);
+    strlcpy(str, command, strlen(command) + 1);
     char *argv[strlen(command)];
 
     const char *delims = " ";
