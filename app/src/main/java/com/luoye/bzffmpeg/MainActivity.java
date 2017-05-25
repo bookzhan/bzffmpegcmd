@@ -2,6 +2,7 @@ package com.luoye.bzffmpeg;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -24,7 +25,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void start(View view) {
-        FFmpegUtil.executeFFmpegCommand("ffmpeg -y -i /sdcard/Filter/input.mp4 -vcodec copy -acodec copy /sdcard/Filter/output.mp4");
+        int ret = FFmpegUtil.executeFFmpegCommand("ffmpeg -y -i /sdcard/Filter/input.mp4 -vcodec copy -acodec copy /sdcard/Filter/output.mp4");
+        Log.d("kkk", "ret=" + ret);
     }
 
 }
