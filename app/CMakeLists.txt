@@ -10,7 +10,7 @@ cmake_minimum_required(VERSION 3.4.1)
 # Gradle automatically packages shared libraries with your APK.
 
 add_library( # Sets the name of the library.
-             ffmpegCmd
+             bzffmpegcmd
 
              SHARED
 
@@ -55,7 +55,7 @@ include_directories(
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       ffmpegCmd
+                       bzffmpegcmd
 
                        # Links the target library to the log library
                        # included in the NDK.
