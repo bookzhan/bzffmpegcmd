@@ -775,10 +775,15 @@ static void write_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost) {
                pkt->size
         );
     }
-    if (st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO && NULL != ost->sync_ist &&
-        NULL != ost->sync_ist->st && ost->sync_ist->st->duration > 0 && pkt->pts > 0) {
-        av_log(NULL, AV_LOG_ERROR, "tempProgress=%f",
-               (float) (1.0 * pkt->pts / ost->sync_ist->st->duration));
+    if (NULL != globalProgressCallBack && st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO &&
+        NULL != ost->sync_ist &&
+        NULL != ost->sync_ist->st && ost->sync_ist->st->duration > 0 && pkt->pts > 0 &&
+        ffmpeg_cmd_step % 10 == 0) {//回调次数缩小10倍
+        globalProgressCallBack(CALLBACK_TYPE_CMD, CALLBACK_WHAT_MESSAGE_PROGRESS,
+                               (float) (1.0 * pkt->pts / ost->sync_ist->st->duration));
+    }
+    if (AVMEDIA_TYPE_VIDEO == st->codecpar->codec_type) {
+        ffmpeg_cmd_step++;
     }
 
     ret = av_interleaved_write_frame(s, pkt);
@@ -4584,9 +4589,19 @@ static int64_t getmaxrss(void) {
 static void log_callback_null(void *ptr, int level, const char *fmt, va_list vl) {
 }
 
-int run(int argc, char **argv) {
+int register_lib() {
+    av_register_all();
+    avcodec_register_all();
+    avfilter_register_all();
+    avformat_network_init();
+    return 0;
+}
+
+int run(int argc, char **argv, void (*progressCallBack)(int, int, float)) {
     int i, ret;
     int64_t ti;
+    ffmpeg_cmd_step = 0;
+    globalProgressCallBack = progressCallBack;
 
     init_dynload();
 
@@ -4604,13 +4619,13 @@ int run(int argc, char **argv) {
         argv++;
     }
 
-    avcodec_register_all();
+//    avcodec_register_all();
 #if CONFIG_AVDEVICE
     avdevice_register_all();
 #endif
-    avfilter_register_all();
-    av_register_all();
-    avformat_network_init();
+//    avfilter_register_all();
+//    av_register_all();
+//    avformat_network_init();
 
     show_banner(argc, argv, options);
 

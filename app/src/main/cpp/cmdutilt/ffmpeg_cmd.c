@@ -3,7 +3,9 @@
 #include "ffmpeg.h"
 
 #include <android/log.h>
+
 const char *TAG = "bookzhan";
+
 void log_call_back(void *ptr, int level, const char *fmt, va_list vl) {
     //自定义的日志
     if (level == 3) {
@@ -21,7 +23,14 @@ void log_call_back(void *ptr, int level, const char *fmt, va_list vl) {
     }
 }
 
-int executeFFmpegCommand(const char *command) {
+//回调合并进度
+void progressCallBack(int type, int what, float progress) {
+//    LOGD("progressCallBack=%f", progress);
+    __android_log_print(ANDROID_LOG_DEBUG, TAG, "type=%d--what=%d--progress=%f", type, what,
+                        progress);
+}
+
+int executeFFmpegCommand(const char *command, void (*progressCallBack)(int, int, float)) {
 
     char str[1024] = {0};
 
@@ -39,7 +48,7 @@ int executeFFmpegCommand(const char *command) {
     }
     //手动告诉它结束了,防止出现意外
     argv[index] = 0;
-    return run(index, argv);
+    return run(index, argv, progressCallBack);
 }
 
 JNIEXPORT jint JNICALL
@@ -49,8 +58,9 @@ Java_com_luoye_bzmedia_FFmpegUtil_executeFFmpegCommand(JNIEnv
     const char *command = (*env)->GetStringUTFChars(env, command_, 0);
 
     av_log_set_callback(log_call_back);
-    ret = executeFFmpegCommand(command);
+    register_lib();
 
+    ret = executeFFmpegCommand(command, progressCallBack);
     (*env)->ReleaseStringUTFChars(env, command_, command);
     return ret;
 }
