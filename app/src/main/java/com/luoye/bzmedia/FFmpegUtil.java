@@ -5,5 +5,5 @@ package com.luoye.bzmedia;
  * 说明:
  */
 public class FFmpegUtil {
-    public static native int executeFFmpegCommand(String command);
+    public static native int executeFFmpegCommand(String command, boolean needProgressCallBack);
 }

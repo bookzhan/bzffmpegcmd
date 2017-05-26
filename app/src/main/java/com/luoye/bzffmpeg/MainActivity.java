@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
 
 //        cmd = "ffmpeg -y -i /sdcard/Filter/temp_6.mp4 -i /sdcard/Filter/input_bg.aac -filter_complex [0:a]aformat=fltp:44100:stereo,volume=0.5,apad[0a];[1]aformat=fltp:44100:stereo,volume=1[1a];[0a][1a]amerge[a] -map 0:v -map [a] -ac 2 /sdcard/Filter/output.mp4";
         long startTime = System.currentTimeMillis();
-        int ret = FFmpegUtil.executeFFmpegCommand(cmd);
+        int ret = FFmpegUtil.executeFFmpegCommand(cmd, true);
         Log.d("bookzhan", "ret=" + ret + "-----耗时=" + (System.currentTimeMillis() - startTime));
     }
 

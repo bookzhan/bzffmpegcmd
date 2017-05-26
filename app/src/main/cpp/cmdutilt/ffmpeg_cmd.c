@@ -52,15 +52,20 @@ int executeFFmpegCommand(const char *command, void (*progressCallBack)(int, int,
 }
 
 JNIEXPORT jint JNICALL
-Java_com_luoye_bzmedia_FFmpegUtil_executeFFmpegCommand(JNIEnv
-                                                       *env, jclass type, jstring command_) {
+Java_com_luoye_bzmedia_FFmpegUtil_executeFFmpegCommand(JNIEnv *env, jclass type, jstring command_,
+                                                       jboolean needProgressCallBack) {
     int ret = 0;
     const char *command = (*env)->GetStringUTFChars(env, command_, 0);
 
     av_log_set_callback(log_call_back);
     register_lib();
 
-    ret = executeFFmpegCommand(command, progressCallBack);
+    if (needProgressCallBack) {
+        ret = executeFFmpegCommand(command, progressCallBack);
+    } else {
+        ret = executeFFmpegCommand(command, NULL);
+    }
+
     (*env)->ReleaseStringUTFChars(env, command_, command);
     return ret;
 }
