@@ -774,6 +774,11 @@ static void write_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost) {
                pkt->size
         );
     }
+    if (st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO && NULL != ost->sync_ist &&
+        NULL != ost->sync_ist->st && ost->sync_ist->st->duration > 0 && pkt->pts > 0) {
+        av_log(NULL, AV_LOG_ERROR, "tempProgress=%f",
+               (float) (1.0 * pkt->pts / ost->sync_ist->st->duration));
+    }
 
     ret = av_interleaved_write_frame(s, pkt);
     if (ret < 0) {
@@ -1864,7 +1869,7 @@ static void flush_encoders(void) {
                     av_log(NULL, AV_LOG_FATAL, "%s encoding failed: %s\n",
                            desc,
                            av_err2str(ret));
-                    return ;
+                    return;
                 }
                 if (ost->logfile && enc->stats_out) {
                     fprintf(ost->logfile, "%s", enc->stats_out);
@@ -3247,7 +3252,7 @@ static void set_encoder_id(OutputFile *of, OutputStream *ost) {
     encoder_string_len = sizeof(LIBAVCODEC_IDENT) + strlen(ost->enc->name) + 2;
     encoder_string = av_mallocz(encoder_string_len);
     if (!encoder_string)
-        return ;
+        return;
 
     if (!(format_flags & AVFMT_FLAG_BITEXACT) && !(codec_flags & AV_CODEC_FLAG_BITEXACT))
         av_strlcpy(encoder_string, LIBAVCODEC_IDENT " ", encoder_string_len);

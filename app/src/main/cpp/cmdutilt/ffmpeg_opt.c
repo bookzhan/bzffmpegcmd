@@ -1225,7 +1225,7 @@ new_output_stream(OptionsContext *o, AVFormatContext *oc, enum AVMediaType type,
 
     if (!st) {
         av_log(NULL, AV_LOG_FATAL, "Could not alloc stream.\n");
-        return exit_program(-1);
+        return NULL;
     }
 
     if (oc->nb_streams - 1 < o->nb_streamid_map)
@@ -1233,7 +1233,7 @@ new_output_stream(OptionsContext *o, AVFormatContext *oc, enum AVMediaType type,
 
     GROW_ARRAY(output_streams, nb_output_streams);
     if (!(ost = av_mallocz(sizeof(*ost))))
-        return exit_program(-1);
+        return NULL;
     output_streams[nb_output_streams - 1] = ost;
 
     ost->file_index = nb_output_files - 1;
@@ -1245,20 +1245,20 @@ new_output_stream(OptionsContext *o, AVFormatContext *oc, enum AVMediaType type,
     if (ret < 0) {
         av_log(NULL, AV_LOG_FATAL, "Error selecting an encoder for stream "
                 "%d:%d\n", ost->file_index, ost->index);
-        return exit_program(-1);
+        return NULL;
     }
 
     ost->enc_ctx = avcodec_alloc_context3(ost->enc);
     if (!ost->enc_ctx) {
         av_log(NULL, AV_LOG_ERROR, "Error allocating the encoding context.\n");
-        return exit_program(-1);
+        return NULL;
     }
     ost->enc_ctx->codec_type = type;
 
     ost->ref_par = avcodec_parameters_alloc();
     if (!ost->ref_par) {
         av_log(NULL, AV_LOG_ERROR, "Error allocating the encoding parameters.\n");
-        return exit_program(-1);
+        return NULL;
     }
 
     if (ost->enc) {
@@ -1277,7 +1277,7 @@ new_output_stream(OptionsContext *o, AVFormatContext *oc, enum AVMediaType type,
                 }
                 if (!(arg = strchr(buf, '='))) {
                     av_log(NULL, AV_LOG_FATAL, "Invalid line found in the preset file.\n");
-                    return exit_program(-1);
+                    return NULL;
                 }
                 *arg++ = 0;
                 av_dict_set(&ost->encoder_opts, buf, arg, AV_DICT_DONT_OVERWRITE);
@@ -1289,7 +1289,7 @@ new_output_stream(OptionsContext *o, AVFormatContext *oc, enum AVMediaType type,
             av_log(NULL, AV_LOG_FATAL,
                    "Preset %s specified for stream %d:%d, but could not be opened.\n",
                    preset, ost->file_index, ost->index);
-            return exit_program(-1);
+            return NULL;
         }
     } else {
         ost->encoder_opts = filter_codec_opts(o->g->codec_opts, AV_CODEC_ID_NONE, oc, st, NULL);
@@ -1316,27 +1316,27 @@ new_output_stream(OptionsContext *o, AVFormatContext *oc, enum AVMediaType type,
 
         bsf = av_get_token(&bsfs, ",");
         if (!bsf)
-            return exit_program(-1);
+            return NULL;
         bsf_name = av_strtok(bsf, "=", &bsf_options_str);
         if (!bsf_name)
-            return exit_program(-1);
+            return NULL;
 
         filter = av_bsf_get_by_name(bsf_name);
         if (!filter) {
             av_log(NULL, AV_LOG_FATAL, "Unknown bitstream filter %s\n", bsf_name);
-            return exit_program(-1);
+            return NULL;
         }
 
         ost->bsf_ctx = av_realloc_array(ost->bsf_ctx,
                                         ost->nb_bitstream_filters + 1,
                                         sizeof(*ost->bsf_ctx));
         if (!ost->bsf_ctx)
-            return exit_program(-1);
+            return NULL;
 
         ret = av_bsf_alloc(filter, &ost->bsf_ctx[ost->nb_bitstream_filters]);
         if (ret < 0) {
             av_log(NULL, AV_LOG_ERROR, "Error allocating a bitstream filter context\n");
-            return exit_program(-1);
+            return NULL;
         }
 
         ost->nb_bitstream_filters++;
@@ -1354,7 +1354,7 @@ new_output_stream(OptionsContext *o, AVFormatContext *oc, enum AVMediaType type,
             if (ret < 0) {
                 av_log(NULL, AV_LOG_ERROR, "Error parsing options for bitstream filter %s\n",
                        bsf_name);
-                return exit_program(-1);
+                return NULL;
             }
         }
         av_freep(&bsf);
@@ -1367,7 +1367,7 @@ new_output_stream(OptionsContext *o, AVFormatContext *oc, enum AVMediaType type,
                                                       sizeof(*ost->bsf_extradata_updated));
         if (!ost->bsf_extradata_updated) {
             av_log(NULL, AV_LOG_FATAL, "Bitstream filter memory allocation failed\n");
-            return exit_program(-1);
+            return NULL;
         }
     }
 
@@ -1414,7 +1414,7 @@ new_output_stream(OptionsContext *o, AVFormatContext *oc, enum AVMediaType type,
 
     ost->muxing_queue = av_fifo_alloc(8 * sizeof(AVPacket));
     if (!ost->muxing_queue)
-        return exit_program(-1);
+        return NULL;
 
     return ost;
 }

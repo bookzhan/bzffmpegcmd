@@ -1,24 +1,25 @@
 #include <jni.h>
 #include <string.h>
-#include <android/log.h>
 #include "ffmpeg.h"
-//const char *TAG = "bookzhan";
-//void log_call_back(void *ptr, int level, const char *fmt, va_list vl) {
-//    //自定义的日志
-//    if (level == 3) {
-//        __android_log_vprint(ANDROID_LOG_ERROR, TAG, fmt, vl);
-//    } else if (level == 2) {
-//        __android_log_vprint(ANDROID_LOG_DEBUG, TAG, fmt, vl);
-//    } else if (level == 1) {
-//        __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
-//    } else {
-//        if (level <= 16) {//ffmpeg 来的日志
-//            __android_log_vprint(ANDROID_LOG_ERROR, TAG, fmt, vl);
-//        } else {
-//            __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
-//        }
-//    }
-//}
+
+#include <android/log.h>
+const char *TAG = "bookzhan";
+void log_call_back(void *ptr, int level, const char *fmt, va_list vl) {
+    //自定义的日志
+    if (level == 3) {
+        __android_log_vprint(ANDROID_LOG_ERROR, TAG, fmt, vl);
+    } else if (level == 2) {
+        __android_log_vprint(ANDROID_LOG_DEBUG, TAG, fmt, vl);
+    } else if (level == 1) {
+        __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
+    } else {
+        if (level <= 16) {//ffmpeg 来的日志
+            __android_log_vprint(ANDROID_LOG_ERROR, TAG, fmt, vl);
+        } else {
+            __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
+        }
+    }
+}
 
 int executeFFmpegCommand(const char *command) {
 
@@ -47,7 +48,7 @@ Java_com_luoye_bzmedia_FFmpegUtil_executeFFmpegCommand(JNIEnv
     int ret = 0;
     const char *command = (*env)->GetStringUTFChars(env, command_, 0);
 
-//    av_log_set_callback(log_call_back);
+    av_log_set_callback(log_call_back);
     ret = executeFFmpegCommand(command);
 
     (*env)->ReleaseStringUTFChars(env, command_, command);
