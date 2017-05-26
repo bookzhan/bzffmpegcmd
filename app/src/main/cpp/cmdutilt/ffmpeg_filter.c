@@ -135,7 +135,7 @@ static char *choose_pix_fmts(OutputStream *ost)
         int len;
 
         if (avio_open_dyn_buf(&s) < 0)
-            return exit_program(-1);
+            return NULL;
 
         p = ost->enc->pix_fmts;
         if (ost->enc_ctx->strict_std_compliance <= FF_COMPLIANCE_UNOFFICIAL) {
@@ -148,7 +148,7 @@ static char *choose_pix_fmts(OutputStream *ost)
         }
         len = avio_close_dyn_buf(s, &ret);
         ret[len - 1] = 0;
-        return ret;
+        return NULL;
     } else
         return NULL;
 }

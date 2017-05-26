@@ -115,6 +115,7 @@
 #include "cmdutils.h"
 
 #include "libavutil/avassert.h"
+#include "libavutil/avtime.h"
 
 const char program_name[] = "ffmpeg";
 const int program_birth_year = 2000;

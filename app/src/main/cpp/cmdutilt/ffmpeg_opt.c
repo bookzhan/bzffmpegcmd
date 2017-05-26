@@ -602,11 +602,11 @@ static AVCodec *find_codec_or_die(const char *name, enum AVMediaType type, int e
 
     if (!codec) {
         av_log(NULL, AV_LOG_FATAL, "Unknown %s '%s'\n", codec_string, name);
-        return exit_program(-1);
+        return codec;
     }
     if (codec->type != type) {
         av_log(NULL, AV_LOG_FATAL, "Invalid %s type '%s'\n", codec_string, name);
-        return exit_program(-1);
+        return codec;
     }
     return codec;
 }
@@ -1143,7 +1143,7 @@ static uint8_t *get_line(AVIOContext *s) {
 
     if (avio_open_dyn_buf(&line) < 0) {
         av_log(NULL, AV_LOG_FATAL, "Could not alloc buffer for reading preset.\n");
-        return exit_program(-1);
+        return (uint8_t *) exit_program(-1);
     }
 
     while ((c = avio_r8(s)) && c != '\n')
@@ -1470,7 +1470,7 @@ static char *get_ost_filters(OptionsContext *o, AVFormatContext *oc,
     if (ost->filters_script && ost->filters) {
         av_log(NULL, AV_LOG_ERROR, "Both -filter and -filter_script set for "
                 "output stream #%d:%d.\n", nb_output_files, st->index);
-        return exit_program(-1);
+        return NULL;
     }
 
     if (ost->filters_script)
@@ -1508,7 +1508,7 @@ static OutputStream *new_video_stream(OptionsContext *o, AVFormatContext *oc, in
     MATCH_PER_STREAM_OPT(frame_rates, str, frame_rate, oc, st);
     if (frame_rate && av_parse_video_rate(&ost->frame_rate, frame_rate) < 0) {
         av_log(NULL, AV_LOG_FATAL, "Invalid framerate value: %s\n", frame_rate);
-        return exit_program(-1);
+        return ost;
     }
     if (frame_rate && video_sync_method == VSYNC_PASSTHROUGH)
         av_log(NULL, AV_LOG_ERROR, "Using -vsync 0 and -r can produce invalid output files\n");
@@ -1519,7 +1519,7 @@ static OutputStream *new_video_stream(OptionsContext *o, AVFormatContext *oc, in
         if (av_parse_ratio(&q, frame_aspect_ratio, 255, 0, NULL) < 0 ||
             q.num <= 0 || q.den <= 0) {
             av_log(NULL, AV_LOG_FATAL, "Invalid aspect ratio: %s\n", frame_aspect_ratio);
-            return exit_program(-1);
+            return ost;
         }
         ost->frame_aspect_ratio = q;
     }
@@ -1540,7 +1540,7 @@ static OutputStream *new_video_stream(OptionsContext *o, AVFormatContext *oc, in
         if (frame_size &&
             av_parse_video_size(&video_enc->width, &video_enc->height, frame_size) < 0) {
             av_log(NULL, AV_LOG_FATAL, "Invalid frame size: %s.\n", frame_size);
-            return exit_program(-1);
+            return ost;
         }
 
         video_enc->bits_per_raw_sample = frame_bits_per_raw_sample;
@@ -1553,7 +1553,7 @@ static OutputStream *new_video_stream(OptionsContext *o, AVFormatContext *oc, in
         if (frame_pix_fmt &&
             (video_enc->pix_fmt = av_get_pix_fmt(frame_pix_fmt)) == AV_PIX_FMT_NONE) {
             av_log(NULL, AV_LOG_FATAL, "Unknown pixel format requested: %s.\n", frame_pix_fmt);
-            return exit_program(-1);
+            return ost;
         }
         st->sample_aspect_ratio = video_enc->sample_aspect_ratio;
 
@@ -1563,7 +1563,7 @@ static OutputStream *new_video_stream(OptionsContext *o, AVFormatContext *oc, in
         if (intra_matrix) {
             if (!(video_enc->intra_matrix = av_mallocz(sizeof(*video_enc->intra_matrix) * 64))) {
                 av_log(NULL, AV_LOG_FATAL, "Could not allocate memory for intra matrix.\n");
-                return exit_program(-1);
+                return ost;
             }
             parse_matrix_coeffs(video_enc->intra_matrix, intra_matrix);
         }
@@ -1572,7 +1572,7 @@ static OutputStream *new_video_stream(OptionsContext *o, AVFormatContext *oc, in
             uint16_t *p = av_mallocz(sizeof(*video_enc->chroma_intra_matrix) * 64);
             if (!p) {
                 av_log(NULL, AV_LOG_FATAL, "Could not allocate memory for intra matrix.\n");
-                return exit_program(-1);
+                return ost;
             }
             av_codec_set_chroma_intra_matrix(video_enc, p);
             parse_matrix_coeffs(p, chroma_intra_matrix);
@@ -1581,7 +1581,7 @@ static OutputStream *new_video_stream(OptionsContext *o, AVFormatContext *oc, in
         if (inter_matrix) {
             if (!(video_enc->inter_matrix = av_mallocz(sizeof(*video_enc->inter_matrix) * 64))) {
                 av_log(NULL, AV_LOG_FATAL, "Could not allocate memory for inter matrix.\n");
-                return exit_program(-1);
+                return ost;
             }
             parse_matrix_coeffs(video_enc->inter_matrix, inter_matrix);
         }
@@ -1592,14 +1592,14 @@ static OutputStream *new_video_stream(OptionsContext *o, AVFormatContext *oc, in
             int e = sscanf(p, "%d,%d,%d", &start, &end, &q);
             if (e != 3) {
                 av_log(NULL, AV_LOG_FATAL, "error parsing rc_override\n");
-                return exit_program(-1);
+                return ost;
             }
             video_enc->rc_override =
                     av_realloc_array(video_enc->rc_override,
                                      i + 1, sizeof(RcOverride));
             if (!video_enc->rc_override) {
                 av_log(NULL, AV_LOG_FATAL, "Could not (re)allocate memory for rc_override.\n");
-                return exit_program(-1);
+                return ost;
             }
             video_enc->rc_override[i].start_frame = start;
             video_enc->rc_override[i].end_frame = end;
@@ -1634,7 +1634,7 @@ static OutputStream *new_video_stream(OptionsContext *o, AVFormatContext *oc, in
         MATCH_PER_STREAM_OPT(passlogfiles, str, ost->logfile_prefix, oc, st);
         if (ost->logfile_prefix &&
             !(ost->logfile_prefix = av_strdup(ost->logfile_prefix)))
-            return exit_program(-1);
+            return ost;
 
         if (do_pass) {
             char logfilename[1024];
@@ -1654,7 +1654,7 @@ static OutputStream *new_video_stream(OptionsContext *o, AVFormatContext *oc, in
                         av_log(NULL, AV_LOG_FATAL,
                                "Error reading log file '%s' for pass-2 encoding\n",
                                logfilename);
-                        return exit_program(-1);
+                        return ost;
                     }
                     video_enc->stats_in = logbuffer;
                 }
@@ -1664,7 +1664,7 @@ static OutputStream *new_video_stream(OptionsContext *o, AVFormatContext *oc, in
                         av_log(NULL, AV_LOG_FATAL,
                                "Cannot write log file '%s' for pass-1 encoding: %s\n",
                                logfilename, strerror(errno));
-                        return exit_program(-1);
+                        return ost;
                     }
                     ost->logfile = f;
                 }
@@ -1683,7 +1683,7 @@ static OutputStream *new_video_stream(OptionsContext *o, AVFormatContext *oc, in
 
         ost->avfilter = get_ost_filters(o, oc, ost);
         if (!ost->avfilter)
-            return exit_program(-1);
+            return ost;
     } else {
         MATCH_PER_STREAM_OPT(copy_initial_nonkeyframes, i, ost->copy_initial_nonkeyframes, oc, st);
     }
@@ -1718,7 +1718,7 @@ static OutputStream *new_audio_stream(OptionsContext *o, AVFormatContext *oc, in
         if (sample_fmt &&
             (audio_enc->sample_fmt = av_get_sample_fmt(sample_fmt)) == AV_SAMPLE_FMT_NONE) {
             av_log(NULL, AV_LOG_FATAL, "Invalid sample format '%s'\n", sample_fmt);
-            return exit_program(-1);
+            return ost;
         }
 
         MATCH_PER_STREAM_OPT(audio_sample_rate, i, audio_enc->sample_rate, oc, st);
@@ -1728,7 +1728,7 @@ static OutputStream *new_audio_stream(OptionsContext *o, AVFormatContext *oc, in
 
         ost->avfilter = get_ost_filters(o, oc, ost);
         if (!ost->avfilter)
-            return exit_program(-1);
+            return ost;
 
         /* check for channel mapping for this audio stream */
         for (n = 0; n < o->nb_audio_channel_maps; n++) {
@@ -1754,7 +1754,7 @@ static OutputStream *new_audio_stream(OptionsContext *o, AVFormatContext *oc, in
                                           ost->audio_channels_mapped + 1,
                                           sizeof(*ost->audio_channels_map)
                     ) < 0)
-                        return exit_program(-1);
+                        return ost;
 
                     ost->audio_channels_map[ost->audio_channels_mapped++] = map->channel_idx;
                 }
@@ -1774,7 +1774,7 @@ static OutputStream *new_data_stream(OptionsContext *o, AVFormatContext *oc, int
     ost = new_output_stream(o, oc, AVMEDIA_TYPE_DATA, source_index);
     if (!ost->stream_copy) {
         av_log(NULL, AV_LOG_FATAL, "Data stream encoding not supported yet (only streamcopy)\n");
-        return exit_program(-1);
+        return ost;
     }
 
     return ost;
@@ -1786,7 +1786,7 @@ static OutputStream *new_unknown_stream(OptionsContext *o, AVFormatContext *oc, 
     ost = new_output_stream(o, oc, AVMEDIA_TYPE_UNKNOWN, source_index);
     if (!ost->stream_copy) {
         av_log(NULL, AV_LOG_FATAL, "Unknown stream encoding not supported yet (only streamcopy)\n");
-        return exit_program(-1);
+        return ost;
     }
 
     return ost;
@@ -1820,7 +1820,7 @@ static OutputStream *new_subtitle_stream(OptionsContext *o, AVFormatContext *oc,
         if (frame_size &&
             av_parse_video_size(&subtitle_enc->width, &subtitle_enc->height, frame_size) < 0) {
             av_log(NULL, AV_LOG_FATAL, "Invalid frame size: %s.\n", frame_size);
-            return exit_program(-1);
+            return ost;
         }
     }
 
