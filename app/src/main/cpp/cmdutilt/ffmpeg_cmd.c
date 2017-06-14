@@ -29,7 +29,8 @@
 //                        progress);
 //}
 
-int executeFFmpegCommand(const char *command, void (*progressCallBack)(int, int, float)) {
+int executeFFmpegCommand(int callbackType, const char *command,
+                         void (*progressCallBack)(int, int, float)) {
 
     char str[1024] = {0};
 
@@ -47,7 +48,7 @@ int executeFFmpegCommand(const char *command, void (*progressCallBack)(int, int,
     }
     //手动告诉它结束了,防止出现意外
     argv[index] = 0;
-    return run(0, index, argv, progressCallBack);
+    return run(callbackType, index, argv, progressCallBack);
 }
 
 

@@ -6,6 +6,6 @@
 #define FFMPEGCMD_FFMPEG_CMD_H
 
 //小于0失败,>0成功
-int executeFFmpegCommand(const char *,void (*progressCallBack)(int, int, float));
+int executeFFmpegCommand(int callbackType, const char *, void (*progressCallBack)(int, int, float));
 
 #endif //FFMPEGCMD_FFMPEG_CMD_H
