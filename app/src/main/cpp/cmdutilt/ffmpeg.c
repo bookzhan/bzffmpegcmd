@@ -465,7 +465,14 @@ const AVIOInterruptCB int_cb = {decode_interrupt_cb, NULL};
 
 static void ffmpeg_cleanup(int ret) {
     int i, j;
-
+    if (NULL != globalProgressCallBack) {
+        if (ret < 0) {
+            globalProgressCallBack(CALL_BACK_TYPE, CALLBACK_WHAT_MESSAGE_ERROR, 0);
+        } else {
+            globalProgressCallBack(CALL_BACK_TYPE, CALLBACK_WHAT_MESSAGE_PROGRESS, 1);
+            globalProgressCallBack(CALL_BACK_TYPE, CALLBACK_WHAT_MESSAGE_FINISH, 0);
+        }
+    }
     if (do_benchmark) {
         int maxrss = getmaxrss() / 1024;
         av_log(NULL, AV_LOG_INFO, "bench: maxrss=%ikB\n", maxrss);
@@ -791,7 +798,7 @@ static void write_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost) {
     ret = av_interleaved_write_frame(s, pkt);
     if (ret < 0) {
         print_error("av_interleaved_write_frame()", ret);
-        main_return_code = 1;
+        main_return_code = -1;
         close_all_output_streams(ost, MUXER_FINISHED | ENCODER_FINISHED, ENCODER_FINISHED);
     }
     av_packet_unref(pkt);
@@ -4670,7 +4677,7 @@ int run(int callbackType, int argc, char **argv, void (*progressCallBack)(int, i
     av_log(NULL, AV_LOG_DEBUG, "%"PRIu64" frames successfully decoded, %"PRIu64" decoding errors\n",
            decode_error_stat[0], decode_error_stat[1]);
     if ((decode_error_stat[0] + decode_error_stat[1]) * max_error_rate < decode_error_stat[1])
-        exit_program(69);
+        exit_program(-1);
 
     exit_program(received_nb_signals ? 255 : main_return_code);
     CALL_BACK_TYPE = CALLBACK_TYPE_CMD;
