@@ -117,6 +117,8 @@
 #include "libavutil/avassert.h"
 #include "libavutil/avtime.h"
 
+int CALL_BACK_TYPE = CALLBACK_TYPE_CMD;
+
 const char program_name[] = "ffmpeg";
 const int program_birth_year = 2000;
 
@@ -779,7 +781,7 @@ static void write_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost) {
         NULL != ost->sync_ist &&
         NULL != ost->sync_ist->st && ost->sync_ist->st->duration > 0 && pkt->pts > 0 &&
         ffmpeg_cmd_step % 10 == 0) {//回调次数缩小10倍
-        globalProgressCallBack(CALLBACK_TYPE_CMD, CALLBACK_WHAT_MESSAGE_PROGRESS,
+        globalProgressCallBack(CALL_BACK_TYPE, CALLBACK_WHAT_MESSAGE_PROGRESS,
                                (float) (1.0 * pkt->pts / ost->sync_ist->st->duration));
     }
     if (AVMEDIA_TYPE_VIDEO == st->codecpar->codec_type) {
@@ -4597,11 +4599,12 @@ int register_lib() {
     return 0;
 }
 
-int run(int argc, char **argv, void (*progressCallBack)(int, int, float)) {
+int run(int callbackType, int argc, char **argv, void (*progressCallBack)(int, int, float)) {
     int i, ret;
     int64_t ti;
     ffmpeg_cmd_step = 0;
     globalProgressCallBack = progressCallBack;
+    CALL_BACK_TYPE = callbackType;
 
     init_dynload();
 
@@ -4670,5 +4673,6 @@ int run(int argc, char **argv, void (*progressCallBack)(int, int, float)) {
         exit_program(69);
 
     exit_program(received_nb_signals ? 255 : main_return_code);
+    CALL_BACK_TYPE = CALLBACK_TYPE_CMD;
     return main_return_code;
 }

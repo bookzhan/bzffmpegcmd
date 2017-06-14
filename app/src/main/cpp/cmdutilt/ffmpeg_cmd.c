@@ -47,7 +47,7 @@ int executeFFmpegCommand(const char *command, void (*progressCallBack)(int, int,
     }
     //手动告诉它结束了,防止出现意外
     argv[index] = 0;
-    return run(index, argv, progressCallBack);
+    return run(0, index, argv, progressCallBack);
 }
 
 

@@ -50,7 +50,7 @@
 
 #include "libswresample/swresample.h"
 
-#define CALLBACK_TYPE_CMD 10
+#define CALLBACK_TYPE_CMD 0
 
 #define CALLBACK_WHAT_MESSAGE_ERROR 0
 #define CALLBACK_WHAT_MESSAGE_PROGRESS 1
@@ -650,7 +650,7 @@ static void (*globalProgressCallBack)(int, int, float)=NULL;
 
 static int ffmpeg_cmd_step = 0;
 
-int run(int argc, char **argv, void (*progressCallBack)(int, int, float));
+int run(int callbackType, int argc, char **argv, void (*progressCallBack)(int, int, float));
 
 int register_lib();
 
