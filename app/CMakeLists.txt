@@ -41,12 +41,13 @@ add_library( bzffmpeg-lib
              IMPORTED )
 set_target_properties(bzffmpeg-lib
                        PROPERTIES IMPORTED_LOCATION
-                       ../../../../src/main/jniLibs/armeabi-v7a/libbzffmpeg.so )
+                       ../../../../src/main/jniLibs/${ANDROID_ABI}/libbzffmpeg.so )
 
 include_directories(
                 src/main/cpp/cmdutilt
+                src/main/cpp/include/${ANDROID_ABI}/config.h
                 src/main/cpp/include
-                /Users/luoye/Git/GitLab/FFmpeg-Android-build/ffmpeg
+                /Users/luoye/Git/GitLab/ffmpeg-android-build/ffmpeg
                 )
 
 

@@ -1,18 +1,15 @@
 package com.luoye.bzffmpeg;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
-
-import com.luoye.bzmedia.FFmpegUtil;
 
 public class MainActivity extends AppCompatActivity {
 
     // Used to load the 'native-lib' library on application startup.
     static {
-        System.loadLibrary("ffmpegCmd");
+        System.loadLibrary("bzffmpegcmd");
     }
 
     @Override
