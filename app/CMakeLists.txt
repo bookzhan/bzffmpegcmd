@@ -35,13 +35,16 @@ find_library(log-lib log)
 find_library(m-lib m)
 find_library(z-lib z)
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libbzffmpeg.so ${CMAKE_CURRENT_SOURCE_DIR}/.externalNativeBuild/cmake/debug/${ANDROID_ABI}/libbzffmpeg.so COPYONLY)
+
+
 #ffmpeg
 add_library( bzffmpeg-lib
              SHARED
              IMPORTED )
 set_target_properties(bzffmpeg-lib
                        PROPERTIES IMPORTED_LOCATION
-                       ../../../../src/main/jniLibs/${ANDROID_ABI}/libbzffmpeg.so )
+                       libbzffmpeg.so )
 
 include_directories(
                 src/main/cpp/cmdutilt
