@@ -4,7 +4,7 @@
 #include <android/log.h>
 #include <jni.h>
 
-const char *TAG = "bookzhan";
+const char *TAG = "bz_";
 
 void log_call_back(void *ptr, int level, const char *fmt, va_list vl) {
     //自定义的日志
@@ -18,7 +18,7 @@ void log_call_back(void *ptr, int level, const char *fmt, va_list vl) {
         if (level <= 16) {//ffmpeg 来的日志
             __android_log_vprint(ANDROID_LOG_ERROR, TAG, fmt, vl);
         } else {
-            __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
+//            __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
         }
     }
 }
