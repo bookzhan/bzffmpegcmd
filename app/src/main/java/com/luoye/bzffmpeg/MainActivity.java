@@ -61,7 +61,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void start(View view) {
-        String cmd = "ffmpeg -y -i /sdcard/bzmedia/temp_132.mp4 -i /sdcard/bzmedia/2岁男童差一秒被甩下电梯 地铁站务员飞奔救人-高清视频在线观看-资讯-爱奇艺.mp4 -map 0:v -vcodec copy -map 1:a -acodec copy /storage/emulated/0/bzmedia/video_replace_1543826101491872.mp4";
+//        String cmd = "ffmpeg -y -i /sdcard/bzmedia/temp_132.mp4 -i /sdcard/bzmedia/2岁男童差一秒被甩下电梯 地铁站务员飞奔救人-高清视频在线观看-资讯-爱奇艺.mp4 -map 0:v -vcodec copy -map 1:a -acodec copy /storage/emulated/0/bzmedia/video_replace_1543826101491872.mp4";
+        String cmd = "ffmpeg -y -i \"/sdcard/bzmedia/2岁男童差一秒被甩下电梯 地铁站务员飞奔救人-高清视频在线观看-资讯-爱奇艺.mp4\" -codec copy \"/sdcard/bzmedia/video_replace_1543826101491872.mp4\"";
 
 //        String mergeCmd = "ffmpeg -y -i %s -i %s -c:v copy -filter_complex [0:a]aformat=fltp:44100:stereo,volume=%.2f,apad[0a];[1]aformat=fltp:44100:stereo,volume=%.2f[1a];[0a][1a]amerge[a] -map 0:v -map [a] -ac 2 %s";
 //        mergeCmd = String.format(mergeCmd, "/sdcard/Filter/temp_6.mp4", "/sdcard/Filter/input_bg.mp3", 0.5f, 1.0f, "/sdcard/Filter/output.mp4");

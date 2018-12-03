@@ -10,18 +10,16 @@ cmake_minimum_required(VERSION 3.4.1)
 # Gradle automatically packages shared libraries with your APK.
 
 add_library( # Sets the name of the library.
-             bzffmpegcmd
+        bzffmpegcmd
 
-             SHARED
+        SHARED
 
-
-             src/main/cpp/cmdutilt/cmdutils.c;
-             src/main/cpp/cmdutilt/ffmpeg.c;
-             src/main/cpp/cmdutilt/ffmpeg_filter.c;
-             src/main/cpp/cmdutilt/ffmpeg_opt.c;
-             src/main/cpp/cmdutilt/ffmpeg_cmd.c;
-            )
-
+        src/main/cpp/cmdutilt/cmdutils.c;
+        src/main/cpp/cmdutilt/ffmpeg.c;
+        src/main/cpp/cmdutilt/ffmpeg_filter.c;
+        src/main/cpp/cmdutilt/ffmpeg_opt.c;
+        src/main/cpp/cmdutilt/ffmpeg_cmd.c;
+        )
 
 
 # Searches for a specified prebuilt library and stores the path as a
@@ -39,19 +37,19 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libbz
 
 
 #ffmpeg
-add_library( bzffmpeg-lib
-             SHARED
-             IMPORTED )
+add_library(bzffmpeg-lib
+        SHARED
+        IMPORTED)
 set_target_properties(bzffmpeg-lib
-                       PROPERTIES IMPORTED_LOCATION
-                       libbzffmpeg.so )
+        PROPERTIES IMPORTED_LOCATION
+        libbzffmpeg.so)
 
 include_directories(
-                src/main/cpp/cmdutilt
-                src/main/cpp/include/${ANDROID_ABI}/config.h
-                src/main/cpp/include
-                /Users/luoye/Git/GitLab/ffmpeg-android-build/ffmpeg
-                )
+        src/main/cpp/cmdutilt
+        src/main/cpp/include/${ANDROID_ABI}/config.h
+        src/main/cpp/include
+        /Users/luoye/Git/GitLab/ffmpeg-android-build/ffmpeg
+)
 
 
 # Specifies libraries CMake should link to your target library. You
@@ -59,8 +57,8 @@ include_directories(
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-                       bzffmpegcmd
+        bzffmpegcmd
 
-                       # Links the target library to the log library
-                       # included in the NDK.
-                      bzffmpeg-lib ${log-lib} ${m-lib} ${z-lib})
+        # Links the target library to the log library
+        # included in the NDK.
+        bzffmpeg-lib ${log-lib} ${m-lib} ${z-lib})

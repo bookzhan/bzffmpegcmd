@@ -17,6 +17,8 @@ void log_call_back(void *ptr, int level, const char *fmt, va_list vl) {
     } else {
         if (level <= 16) {//ffmpeg 来的日志
             __android_log_vprint(ANDROID_LOG_ERROR, TAG, fmt, vl);
+        } else if (level == 48) {
+            __android_log_vprint(ANDROID_LOG_DEBUG, TAG, fmt, vl);
         } else {
 //            __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
         }
@@ -33,23 +35,47 @@ void progressCallBack(int type, int what, float progress) {
 int executeFFmpegCommand(int callbackType, const char *command,
                          void (*progressCallBack)(int, int, float)) {
 
-    char str[1024] = {0};
+    char *pCommand = (char *) command;
+    int stingLen = strlen(command);
+    char *argv[stingLen];
 
-    strlcpy(str, command, strlen(command) + 1);
-    char *argv[strlen(command)];
-
-    const char *delims = " ";
-    char *result = strtok(str, delims);
-
+    char *buffer = NULL;
     int index = 0;
-    while (result != NULL) {
-        argv[index] = result;
-        result = strtok(NULL, delims);
-        index++;
+    int isStartYH = 0;
+    for (int i = 0; i < stingLen; ++i) {
+        char str = *pCommand;
+        pCommand++;
+        if (NULL == buffer) {
+            buffer = malloc(512);
+            memset(buffer, 0, 512);
+            argv[index++] = buffer;
+        }
+        //保证引号成对出现
+        if (str == '"') {
+            if (isStartYH) {
+                isStartYH = 0;
+            } else {
+                isStartYH = 1;
+            }
+            continue;
+        }
+        if (str != ' ' || isStartYH) {
+            *buffer = str;
+            buffer++;
+        } else {
+            buffer = NULL;
+        }
+    }
+    for (int i = 0; i < index; ++i) {
+        av_log(NULL, AV_LOG_DEBUG, "cmd=%s", argv[i]);
     }
     //手动告诉它结束了,防止出现意外
     argv[index] = 0;
-    return run(callbackType, index, argv, progressCallBack);
+    int ret = run(callbackType, index, argv, progressCallBack);
+    for (int i = 0; i < index; ++i) {
+        free(argv[i]);
+    }
+    return ret;
 }
 
 
