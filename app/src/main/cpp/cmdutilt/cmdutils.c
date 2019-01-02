@@ -411,9 +411,9 @@ int parse_optgroup(void *optctx, OptionGroup *g) {
         if (g->group_def->flags &&
             !(g->group_def->flags & o->opt->flags)) {
             av_log(NULL, AV_LOG_ERROR, "Option %s (%s) cannot be applied to "
-                           "%s %s -- you are trying to apply an input option to an "
-                           "output file or vice versa. Move this option before the "
-                           "file it belongs to.\n", o->key, o->opt->help,
+                                       "%s %s -- you are trying to apply an input option to an "
+                                       "output file or vice versa. Move this option before the "
+                                       "file it belongs to.\n", o->key, o->opt->help,
                    g->group_def->name, g->arg);
             return AVERROR(EINVAL);
         }
@@ -791,7 +791,7 @@ do {                                                                           \
 
             add_opt(octx, po, opt, arg);
             av_log(NULL, AV_LOG_DEBUG, " matched as option '%s' (%s) with "
-                    "argument '%s'.\n", po->name, po->help, arg);
+                                       "argument '%s'.\n", po->name, po->help, arg);
             continue;
         }
 
@@ -800,12 +800,12 @@ do {                                                                           \
             ret = opt_default(NULL, opt, argv[optindex]);
             if (ret >= 0) {
                 av_log(NULL, AV_LOG_DEBUG, " matched as AVOption '%s' with "
-                        "argument '%s'.\n", opt, argv[optindex]);
+                                           "argument '%s'.\n", opt, argv[optindex]);
                 optindex++;
                 continue;
             } else if (ret != AVERROR_OPTION_NOT_FOUND) {
                 av_log(NULL, AV_LOG_ERROR, "Error parsing option '%s' "
-                        "with argument '%s'.\n", opt, argv[optindex]);
+                                           "with argument '%s'.\n", opt, argv[optindex]);
                 return ret;
             }
         }
@@ -816,7 +816,7 @@ do {                                                                           \
             po->name && po->flags & OPT_BOOL) {
             add_opt(octx, po, opt, "0");
             av_log(NULL, AV_LOG_DEBUG, " matched as option '%s' (%s) with "
-                    "argument 0.\n", po->name, po->help);
+                                       "argument 0.\n", po->name, po->help);
             continue;
         }
 
@@ -826,7 +826,7 @@ do {                                                                           \
 
     if (octx->cur_group.nb_opts || codec_opts || format_opts || resample_opts)
         av_log(NULL, AV_LOG_WARNING, "Trailing options were found on the "
-                "commandline.\n");
+                                     "commandline.\n");
 
     av_log(NULL, AV_LOG_DEBUG, "Finished splitting the commandline.\n");
 
@@ -887,7 +887,7 @@ int opt_loglevel(void *optctx, const char *opt, const char *arg) {
     level = strtol(arg, &tail, 10);
     if (*tail) {
         av_log(NULL, AV_LOG_FATAL, "Invalid loglevel \"%s\". "
-                "Possible levels are numbers or:\n", arg);
+                                   "Possible levels are numbers or:\n", arg);
         for (i = 0; i < FF_ARRAY_ELEMS(log_levels); i++)
             av_log(NULL, AV_LOG_FATAL, "\"%s\"\n", log_levels[i].name);
         return exit_program(-1);
@@ -984,7 +984,7 @@ static int init_report(const char *env) {
     av_log_set_callback(log_callback_report);
     av_log(NULL, AV_LOG_INFO,
            "%s started on %04d-%02d-%02d at %02d:%02d:%02d\n"
-                   "Report written to \"%s\"\n",
+           "Report written to \"%s\"\n",
            program_name,
            tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday,
            tm->tm_hour, tm->tm_min, tm->tm_sec,
@@ -1152,17 +1152,17 @@ int show_license(void *optctx, const char *opt, const char *arg) {
 #elif CONFIG_GPLV3
     printf(
             "%s is free software; you can redistribute it and/or modify\n"
-                    "it under the terms of the GNU General Public License as published by\n"
-                    "the Free Software Foundation; either version 3 of the License, or\n"
-                    "(at your option) any later version.\n"
-                    "\n"
-                    "%s is distributed in the hope that it will be useful,\n"
-                    "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
-                    "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
-                    "GNU General Public License for more details.\n"
-                    "\n"
-                    "You should have received a copy of the GNU General Public License\n"
-                    "along with %s.  If not, see <http://www.gnu.org/licenses/>.\n",
+            "it under the terms of the GNU General Public License as published by\n"
+            "the Free Software Foundation; either version 3 of the License, or\n"
+            "(at your option) any later version.\n"
+            "\n"
+            "%s is distributed in the hope that it will be useful,\n"
+            "but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+            "MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+            "GNU General Public License for more details.\n"
+            "\n"
+            "You should have received a copy of the GNU General Public License\n"
+            "along with %s.  If not, see <http://www.gnu.org/licenses/>.\n",
             program_name, program_name, program_name);
 #elif CONFIG_GPL
     printf(
@@ -1229,9 +1229,9 @@ static int show_formats_devices(void *optctx, const char *opt, const char *arg, 
     int is_dev;
 
     printf("%s\n"
-                   " D. = Demuxing supported\n"
-                   " .E = Muxing supported\n"
-                   " --\n", device_only ? "Devices:" : "File formats:");
+           " D. = Demuxing supported\n"
+           " .E = Muxing supported\n"
+           " --\n", device_only ? "Devices:" : "File formats:");
     last_name = "000";
     for (;;) {
         int decode = 0;
@@ -1429,7 +1429,8 @@ static unsigned get_codecs_sorted(const AVCodecDescriptor ***rcodecs) {
         nb_codecs++;
     if (!(codecs = av_calloc(nb_codecs, sizeof(*codecs)))) {
         av_log(NULL, AV_LOG_ERROR, "Out of memory\n");
-        return exit_program(-1);
+        exit_program(-1);
+        return 0;
     }
     desc = NULL;
     while ((desc = avcodec_descriptor_next(desc)))
@@ -1456,15 +1457,15 @@ int show_codecs(void *optctx, const char *opt, const char *arg) {
     unsigned i, nb_codecs = get_codecs_sorted(&codecs);
 
     printf("Codecs:\n"
-                   " D..... = Decoding supported\n"
-                   " .E.... = Encoding supported\n"
-                   " ..V... = Video codec\n"
-                   " ..A... = Audio codec\n"
-                   " ..S... = Subtitle codec\n"
-                   " ...I.. = Intra frame-only codec\n"
-                   " ....L. = Lossy compression\n"
-                   " .....S = Lossless compression\n"
-                   " -------\n");
+           " D..... = Decoding supported\n"
+           " .E.... = Encoding supported\n"
+           " ..V... = Video codec\n"
+           " ..A... = Audio codec\n"
+           " ..S... = Subtitle codec\n"
+           " ...I.. = Intra frame-only codec\n"
+           " ....L. = Lossy compression\n"
+           " .....S = Lossless compression\n"
+           " -------\n");
     for (i = 0; i < nb_codecs; i++) {
         const AVCodecDescriptor *desc = codecs[i];
         const AVCodec *codec = NULL;
@@ -1510,15 +1511,15 @@ static void print_codecs(int encoder) {
     unsigned i, nb_codecs = get_codecs_sorted(&codecs);
 
     printf("%s:\n"
-                   " V..... = Video\n"
-                   " A..... = Audio\n"
-                   " S..... = Subtitle\n"
-                   " .F.... = Frame-level multithreading\n"
-                   " ..S... = Slice-level multithreading\n"
-                   " ...X.. = Codec is experimental\n"
-                   " ....B. = Supports draw_horiz_band\n"
-                   " .....D = Supports direct rendering method 1\n"
-                   " ------\n",
+           " V..... = Video\n"
+           " A..... = Audio\n"
+           " S..... = Subtitle\n"
+           " .F.... = Frame-level multithreading\n"
+           " ..S... = Slice-level multithreading\n"
+           " ...X.. = Codec is experimental\n"
+           " ....B. = Supports draw_horiz_band\n"
+           " .....D = Supports direct rendering method 1\n"
+           " ------\n",
            encoder ? "Encoders" : "Decoders");
     for (i = 0; i < nb_codecs; i++) {
         const AVCodecDescriptor *desc = codecs[i];
@@ -1568,7 +1569,7 @@ int show_protocols(void *optctx, const char *opt, const char *arg) {
     const char *name;
 
     printf("Supported file protocols:\n"
-                   "Input:\n");
+           "Input:\n");
     while ((name = avio_enum_protocols(&opaque, 0)))
         printf("  %s\n", name);
     printf("Output:\n");
@@ -1585,13 +1586,13 @@ int show_filters(void *optctx, const char *opt, const char *arg) {
     const AVFilterPad *pad;
 
     printf("Filters:\n"
-                   "  T.. = Timeline support\n"
-                   "  .S. = Slice threading\n"
-                   "  ..C = Command support\n"
-                   "  A = Audio input/output\n"
-                   "  V = Video input/output\n"
-                   "  N = Dynamic number and/or type of input/output\n"
-                   "  | = Source or sink filter\n");
+           "  T.. = Timeline support\n"
+           "  .S. = Slice threading\n"
+           "  ..C = Command support\n"
+           "  A = Audio input/output\n"
+           "  V = Video input/output\n"
+           "  N = Dynamic number and/or type of input/output\n"
+           "  | = Source or sink filter\n");
     while ((filter = avfilter_next(filter))) {
         descr_cur = descr;
         for (i = 0; i < 2; i++) {
@@ -1640,13 +1641,13 @@ int show_pix_fmts(void *optctx, const char *opt, const char *arg) {
     const AVPixFmtDescriptor *pix_desc = NULL;
 
     printf("Pixel formats:\n"
-                   "I.... = Supported Input  format for conversion\n"
-                   ".O... = Supported Output format for conversion\n"
-                   "..H.. = Hardware accelerated format\n"
-                   "...P. = Paletted format\n"
-                   "....B = Bitstream format\n"
-                   "FLAGS NAME            NB_COMPONENTS BITS_PER_PIXEL\n"
-                   "-----\n");
+           "I.... = Supported Input  format for conversion\n"
+           ".O... = Supported Output format for conversion\n"
+           "..H.. = Hardware accelerated format\n"
+           "...P. = Paletted format\n"
+           "....B = Bitstream format\n"
+           "FLAGS NAME            NB_COMPONENTS BITS_PER_PIXEL\n"
+           "-----\n");
 
 #if !CONFIG_SWSCALE
 #   define sws_isSupportedInput(x)  0
@@ -1674,7 +1675,7 @@ int show_layouts(void *optctx, const char *opt, const char *arg) {
     const char *name, *descr;
 
     printf("Individual channels:\n"
-                   "NAME           DESCRIPTION\n");
+           "NAME           DESCRIPTION\n");
     for (i = 0; i < 63; i++) {
         name = av_get_channel_name((uint64_t) 1 << i);
         if (!name)
@@ -1683,7 +1684,7 @@ int show_layouts(void *optctx, const char *opt, const char *arg) {
         printf("%-14s %s\n", name, descr);
     }
     printf("\nStandard channel layouts:\n"
-                   "NAME           DECOMPOSITION\n");
+           "NAME           DECOMPOSITION\n");
     for (i = 0; !av_get_standard_channel_layout(i, &layout, &name); i++) {
         if (name) {
             printf("%-14s ", name);
@@ -1728,8 +1729,8 @@ static void show_help_codec(const char *name, int encoder) {
 
         if (!printed) {
             av_log(NULL, AV_LOG_ERROR, "Codec '%s' is known to FFmpeg, "
-                           "but no %s for it are available. FFmpeg might need to be "
-                           "recompiled with additional external libraries.\n",
+                                       "but no %s for it are available. FFmpeg might need to be "
+                                       "recompiled with additional external libraries.\n",
                    name, encoder ? "encoders" : "decoders");
         }
     } else {
@@ -1983,7 +1984,8 @@ AVDictionary *filter_codec_opts(AVDictionary *opts, enum AVCodecID codec_id,
                 case 0:
                     continue;
                 default:
-                    return exit_program(-1);
+                    exit_program(-1);
+                    return ret;
             }
 
         if (av_opt_find(&cc, t->key, NULL, flags, AV_OPT_SEARCH_FAKE_OBJ) ||
@@ -2025,13 +2027,15 @@ AVDictionary **setup_find_stream_info_opts(AVFormatContext *s,
 void *grow_array(void *array, int elem_size, int *size, int new_size) {
     if (new_size >= INT_MAX / elem_size) {
         av_log(NULL, AV_LOG_ERROR, "Array too big.\n");
-        return exit_program(-1);
+        exit_program(-1);
+        return NULL;
     }
     if (*size < new_size) {
         uint8_t *tmp = av_realloc_array(array, new_size, elem_size);
         if (!tmp) {
             av_log(NULL, AV_LOG_ERROR, "Could not alloc buffer.\n");
-            return exit_program(-1);
+            exit_program(-1);
+            return NULL;
         }
         memset(tmp + *size * elem_size, 0, (new_size - *size) * elem_size);
         *size = new_size;
@@ -2059,9 +2063,9 @@ double get_rotation(AVStream *st) {
 
     if (fabs(theta - 90 * round(theta / 90)) > 2)
         av_log(NULL, AV_LOG_WARNING, "Odd rotation angle.\n"
-                "If you want to help, upload a sample "
-                "of this file to ftp://upload.ffmpeg.org/incoming/ "
-                "and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)");
+                                     "If you want to help, upload a sample "
+                                     "of this file to ftp://upload.ffmpeg.org/incoming/ "
+                                     "and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)");
 
     return theta;
 }
