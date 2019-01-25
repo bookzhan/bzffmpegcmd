@@ -776,11 +776,19 @@ static void write_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost, int64
         );
     }
     if (NULL != progressCallBack && st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO &&
-        NULL != ost->sync_ist &&
-        NULL != ost->sync_ist->st && ost->sync_ist->st->duration > 0 && pkt->pts > 0 &&
+        NULL != ost->sync_ist && NULL != ost->st && NULL != pkt &&
+        NULL != ost->sync_ist->st && ost->sync_ist->st->duration > 0 && pkt->dts > 0 &&
         ffmpeg_cmd_step % 10 == 0) {//回调次数缩小10倍
-        progressCallBack(handle, CALLBACK_WHAT_MESSAGE_PROGRESS,
-                         (float) (1.0 * pkt->dts / ost->st->duration));
+
+        int64_t temp = av_rescale_q(ost->sync_ist->st->duration,
+                                    ost->sync_ist->st->time_base,
+                                    ost->st->time_base);
+        if (temp <= 0)temp = 1;
+        float tempProgress = (float) (1.0 * pkt->dts / temp);
+
+        if (tempProgress < 0)tempProgress = 0;
+        if (tempProgress > 1)tempProgress = 1;
+        progressCallBack(handle, CALLBACK_WHAT_MESSAGE_PROGRESS, tempProgress);
     }
     if (AVMEDIA_TYPE_VIDEO == st->codecpar->codec_type) {
         ffmpeg_cmd_step++;
