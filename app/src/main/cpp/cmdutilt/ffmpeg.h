@@ -646,7 +646,7 @@ int cuvid_init(AVCodecContext *s);
 
 int cuvid_transcode_init(OutputStream *ost);
 
-static int ffmpeg_cmd_step = 0;
+static int64_t ffmpeg_cmd_step = 0;
 
 int run(int64_t handle, int argc, char **argv, void (*progressCallBack)(int64_t, int, float));
 
