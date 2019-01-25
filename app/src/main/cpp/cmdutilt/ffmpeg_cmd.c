@@ -32,8 +32,8 @@
 //                        progress);
 //}
 
-int executeFFmpegCommand(int callbackType, const char *command,
-                         void (*progressCallBack)(int, int, float)) {
+int executeFFmpegCommand(int64_t handle, const char *command,
+                         void (*progressCallBack)(int64_t, int, float)) {
 
     char *pCommand = (char *) command;
     int stingLen = strlen(command);
@@ -71,7 +71,7 @@ int executeFFmpegCommand(int callbackType, const char *command,
     }
     //手动告诉它结束了,防止出现意外
     argv[index] = 0;
-    int ret = run(callbackType, index, argv, progressCallBack);
+    int ret = run(handle, index, argv, progressCallBack);
     for (int i = 0; i < index; ++i) {
         free(argv[i]);
     }

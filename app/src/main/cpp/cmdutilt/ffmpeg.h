@@ -646,11 +646,9 @@ int cuvid_init(AVCodecContext *s);
 
 int cuvid_transcode_init(OutputStream *ost);
 
-static void (*globalProgressCallBack)(int, int, float)=NULL;
-
 static int ffmpeg_cmd_step = 0;
 
-int run(int callbackType, int argc, char **argv, void (*progressCallBack)(int, int, float));
+int run(int64_t handle, int argc, char **argv, void (*progressCallBack)(int64_t, int, float));
 
 int register_lib();
 

@@ -117,8 +117,6 @@
 #include "libavutil/avassert.h"
 #include "libavutil/avtime.h"
 
-int CALL_BACK_TYPE = CALLBACK_TYPE_CMD;
-
 const char program_name[] = "ffmpeg";
 const int program_birth_year = 2000;
 
@@ -465,14 +463,6 @@ const AVIOInterruptCB int_cb = {decode_interrupt_cb, NULL};
 
 static void ffmpeg_cleanup(int ret) {
     int i, j;
-    if (NULL != globalProgressCallBack) {
-        if (ret < 0) {
-            globalProgressCallBack(CALL_BACK_TYPE, CALLBACK_WHAT_MESSAGE_ERROR, 0);
-        } else {
-            globalProgressCallBack(CALL_BACK_TYPE, CALLBACK_WHAT_MESSAGE_PROGRESS, 1);
-            globalProgressCallBack(CALL_BACK_TYPE, CALLBACK_WHAT_MESSAGE_FINISH, 0);
-        }
-    }
     if (do_benchmark) {
         int maxrss = getmaxrss() / 1024;
         av_log(NULL, AV_LOG_INFO, "bench: maxrss=%ikB\n", maxrss);
@@ -663,7 +653,8 @@ close_all_output_streams(OutputStream *ost, OSTFinished this_stream, OSTFinished
     }
 }
 
-static void write_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost) {
+static void write_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost, int64_t handle,
+                         void (*progressCallBack)(int64_t, int, float)) {
     AVFormatContext *s = of->ctx;
     AVStream *st = ost->st;
     int ret;
@@ -784,12 +775,12 @@ static void write_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost) {
                pkt->size
         );
     }
-    if (NULL != globalProgressCallBack && st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO &&
+    if (NULL != progressCallBack && st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO &&
         NULL != ost->sync_ist &&
         NULL != ost->sync_ist->st && ost->sync_ist->st->duration > 0 && pkt->pts > 0 &&
         ffmpeg_cmd_step % 10 == 0) {//回调次数缩小10倍
-        globalProgressCallBack(CALL_BACK_TYPE, CALLBACK_WHAT_MESSAGE_PROGRESS,
-                               (float) (1.0 * pkt->dts / ost->st->duration));
+        progressCallBack(handle, CALLBACK_WHAT_MESSAGE_PROGRESS,
+                         (float) (1.0 * pkt->dts / ost->st->duration));
     }
     if (AVMEDIA_TYPE_VIDEO == st->codecpar->codec_type) {
         ffmpeg_cmd_step++;
@@ -815,7 +806,8 @@ static void close_output_stream(OutputStream *ost) {
     }
 }
 
-static void output_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost) {
+static void output_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost, int64_t handle,
+                          void (*progressCallBack)(int64_t, int, float)) {
     int ret = 0;
 
     /* apply the output bitstream filters, if any */
@@ -864,10 +856,10 @@ static void output_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost) {
                     goto finish;
                 idx++;
             } else
-                write_packet(of, pkt, ost);
+                write_packet(of, pkt, ost, handle, progressCallBack);
         }
     } else
-        write_packet(of, pkt, ost);
+        write_packet(of, pkt, ost, handle, progressCallBack);
 
     finish:
     if (ret < 0 && ret != AVERROR_EOF) {
@@ -891,7 +883,8 @@ static int check_recording_time(OutputStream *ost) {
 }
 
 static void do_audio_out(OutputFile *of, OutputStream *ost,
-                         AVFrame *frame) {
+                         AVFrame *frame, int64_t handle,
+                         void (*progressCallBack)(int64_t, int, float)) {
     AVCodecContext *enc = ost->enc_ctx;
     AVPacket pkt;
     int ret;
@@ -940,9 +933,8 @@ static void do_audio_out(OutputFile *of, OutputStream *ost,
                    av_ts2str(pkt.dts), av_ts2timestr(pkt.dts, &ost->st->time_base));
         }
 
-        output_packet(of, &pkt, ost);
+        output_packet(of, &pkt, ost, handle, progressCallBack);
     }
-
     return;
     error:
     av_log(NULL, AV_LOG_FATAL, "Audio encoding failed\n");
@@ -951,7 +943,8 @@ static void do_audio_out(OutputFile *of, OutputStream *ost,
 
 static void do_subtitle_out(OutputFile *of,
                             OutputStream *ost,
-                            AVSubtitle *sub) {
+                            AVSubtitle *sub, int64_t handle,
+                            void (*progressCallBack)(int64_t, int, float)) {
     int subtitle_out_max_size = 1024 * 1024;
     int subtitle_out_size, nb, i;
     AVCodecContext *enc;
@@ -1028,14 +1021,15 @@ static void do_subtitle_out(OutputFile *of,
                 pkt.pts += 90 * sub->end_display_time;
         }
         pkt.dts = pkt.pts;
-        output_packet(of, &pkt, ost);
+        output_packet(of, &pkt, ost, handle, progressCallBack);
     }
 }
 
 static void do_video_out(OutputFile *of,
                          OutputStream *ost,
                          AVFrame *next_picture,
-                         double sync_ipts) {
+                         double sync_ipts, int64_t handle,
+                         void (*progressCallBack)(int64_t, int, float)) {
     int ret, format_video_sync;
     AVPacket pkt;
     AVCodecContext *enc = ost->enc_ctx;
@@ -1214,8 +1208,7 @@ static void do_video_out(OutputFile *of,
             pkt.size = sizeof(AVPicture);
             pkt.pts = av_rescale_q(in_picture->pts, enc->time_base, ost->st->time_base);
             pkt.flags |= AV_PKT_FLAG_KEY;
-
-            output_packet(of, &pkt, ost);
+            output_packet(of, &pkt, ost, handle, progressCallBack);
         } else
 #endif
         {
@@ -1318,7 +1311,7 @@ static void do_video_out(OutputFile *of,
                 }
 
                 frame_size = pkt.size;
-                output_packet(of, &pkt, ost);
+                output_packet(of, &pkt, ost, handle, progressCallBack);
 
                 /* if two pass, output log */
                 if (ost->logfile && enc->stats_out) {
@@ -1412,7 +1405,8 @@ static void finish_output_stream(OutputStream *ost) {
  *
  * @return  0 for success, <0 for severe errors
  */
-static int reap_filters(int flush) {
+static int reap_filters(int flush, int64_t handle,
+                        void (*progressCallBack)(int64_t, int, float)) {
     AVFrame *filtered_frame = NULL;
     int i;
 
@@ -1443,7 +1437,7 @@ static int reap_filters(int flush) {
                            "Error in av_buffersink_get_frame_flags(): %s\n", av_err2str(ret));
                 } else if (flush && ret == AVERROR_EOF) {
                     if (filter->inputs[0]->type == AVMEDIA_TYPE_VIDEO)
-                        do_video_out(of, ost, NULL, AV_NOPTS_VALUE);
+                        do_video_out(of, ost, NULL, AV_NOPTS_VALUE, handle, progressCallBack);
                 }
                 break;
             }
@@ -1486,7 +1480,7 @@ static int reap_filters(int flush) {
                                enc->time_base.num, enc->time_base.den);
                     }
 
-                    do_video_out(of, ost, filtered_frame, float_pts);
+                    do_video_out(of, ost, filtered_frame, float_pts, handle, progressCallBack);
                     break;
                 case AVMEDIA_TYPE_AUDIO:
                     if (!(enc->codec->capabilities & AV_CODEC_CAP_PARAM_CHANGE) &&
@@ -1495,7 +1489,7 @@ static int reap_filters(int flush) {
                                "Audio filter graph output is not normalized and encoder does not support parameter changes\n");
                         break;
                     }
-                    do_audio_out(of, ost, filtered_frame);
+                    do_audio_out(of, ost, filtered_frame, handle, progressCallBack);
                     break;
                 default:
                     // TODO support subtitle filters
@@ -1831,7 +1825,8 @@ static void print_report(int is_last_report, int64_t timer_start, int64_t cur_ti
         print_final_stats(total_size);
 }
 
-static void flush_encoders(void) {
+static void flush_encoders(int64_t handle,
+                           void (*progressCallBack)(int64_t, int, float)) {
     int i, ret;
 
     for (i = 0; i < nb_output_streams; i++) {
@@ -1899,7 +1894,7 @@ static void flush_encoders(void) {
                 }
                 av_packet_rescale_ts(&pkt, enc->time_base, ost->st->time_base);
                 pkt_size = pkt.size;
-                output_packet(of, &pkt, ost);
+                output_packet(of, &pkt, ost, handle, progressCallBack);
                 if (ost->enc_ctx->codec_type == AVMEDIA_TYPE_VIDEO && vstats_filename) {
                     do_video_stats(ost, pkt_size);
                 }
@@ -1930,7 +1925,8 @@ static int check_output_constraints(InputStream *ist, OutputStream *ost) {
     return 1;
 }
 
-static void do_streamcopy(InputStream *ist, OutputStream *ost, const AVPacket *pkt) {
+static void do_streamcopy(InputStream *ist, OutputStream *ost, const AVPacket *pkt, int64_t handle,
+                          void (*progressCallBack)(int64_t, int, float)) {
     OutputFile *of = output_files[ost->file_index];
     InputFile *f = input_files[ist->file_index];
     int64_t start_time = (of->start_time == AV_NOPTS_VALUE) ? 0 : of->start_time;
@@ -2042,7 +2038,7 @@ static void do_streamcopy(InputStream *ist, OutputStream *ost, const AVPacket *p
     }
 #endif
 
-    output_packet(of, &opkt, ost);
+    output_packet(of, &opkt, ost, handle, progressCallBack);
 }
 
 int guess_input_channel_layout(InputStream *ist) {
@@ -2401,7 +2397,8 @@ static int decode_video(InputStream *ist, AVPacket *pkt, int *got_output, int eo
     return err < 0 ? err : ret;
 }
 
-static int transcode_subtitles(InputStream *ist, AVPacket *pkt, int *got_output) {
+static int transcode_subtitles(InputStream *ist, AVPacket *pkt, int *got_output, int64_t handle,
+                               void (*progressCallBack)(int64_t, int, float)) {
     AVSubtitle subtitle;
     int i, ret = avcodec_decode_subtitle2(ist->dec_ctx,
                                           &subtitle, got_output, pkt);
@@ -2450,8 +2447,7 @@ static int transcode_subtitles(InputStream *ist, AVPacket *pkt, int *got_output)
         if (!check_output_constraints(ist, ost) || !ost->encoding_needed
             || ost->enc->type != AVMEDIA_TYPE_SUBTITLE)
             continue;
-
-        do_subtitle_out(output_files[ost->file_index], ost, &subtitle);
+        do_subtitle_out(output_files[ost->file_index], ost, &subtitle, handle, progressCallBack);
     }
 
     out:
@@ -2470,7 +2466,8 @@ static int send_filter_eof(InputStream *ist) {
 }
 
 /* pkt = NULL means EOF (needed to flush decoder buffers) */
-static int process_input_packet(InputStream *ist, const AVPacket *pkt, int no_eof) {
+static int process_input_packet(InputStream *ist, const AVPacket *pkt, int no_eof, int64_t handle,
+                                void (*progressCallBack)(int64_t, int, float)) {
     int ret = 0, i;
     int repeating = 0;
     int eof_reached = 0;
@@ -2546,7 +2543,7 @@ static int process_input_packet(InputStream *ist, const AVPacket *pkt, int no_eo
             case AVMEDIA_TYPE_SUBTITLE:
                 if (repeating)
                     break;
-                ret = transcode_subtitles(ist, &avpkt, &got_output);
+                ret = transcode_subtitles(ist, &avpkt, &got_output, handle, progressCallBack);
                 if (!pkt && ret >= 0)
                     ret = AVERROR_EOF;
                 break;
@@ -2638,7 +2635,7 @@ static int process_input_packet(InputStream *ist, const AVPacket *pkt, int no_eo
         if (!check_output_constraints(ist, ost) || ost->encoding_needed)
             continue;
 
-        do_streamcopy(ist, ost, pkt);
+        do_streamcopy(ist, ost, pkt, handle, progressCallBack);
     }
 
     return !eof_reached;
@@ -2813,7 +2810,8 @@ static int compare_int64(const void *a, const void *b) {
 }
 
 /* open the muxer when all the streams are initialized */
-static int check_init_output_file(OutputFile *of, int file_index) {
+static int check_init_output_file(OutputFile *of, int file_index, int64_t handle,
+                                  void (*progressCallBack)(int64_t, int, float)) {
     int ret, i;
 
     for (i = 0; i < of->ctx->nb_streams; i++) {
@@ -2847,7 +2845,7 @@ static int check_init_output_file(OutputFile *of, int file_index) {
         while (av_fifo_size(ost->muxing_queue)) {
             AVPacket pkt;
             av_fifo_generic_read(ost->muxing_queue, &pkt, sizeof(pkt), NULL);
-            write_packet(of, &pkt, ost);
+            write_packet(of, &pkt, ost, handle, progressCallBack);
         }
     }
 
@@ -3043,7 +3041,8 @@ static int init_output_stream_streamcopy(OutputStream *ost) {
     return 0;
 }
 
-static int init_output_stream(OutputStream *ost, char *error, int error_len) {
+static int init_output_stream(OutputStream *ost, char *error, int error_len, int64_t handle,
+                              void (*progressCallBack)(int64_t, int, float)) {
     int ret = 0;
 
     if (ost->encoding_needed) {
@@ -3155,7 +3154,8 @@ static int init_output_stream(OutputStream *ost, char *error, int error_len) {
 
     ost->initialized = 1;
 
-    ret = check_init_output_file(output_files[ost->file_index], ost->file_index);
+    ret = check_init_output_file(output_files[ost->file_index], ost->file_index, handle,
+                                 progressCallBack);
     if (ret < 0)
         return ret;
 
@@ -3278,7 +3278,7 @@ static void set_encoder_id(OutputFile *of, OutputStream *ost) {
                 AV_DICT_DONT_STRDUP_VAL | AV_DICT_DONT_OVERWRITE);
 }
 
-static int transcode_init(void) {
+static int transcode_init(int64_t handle, void (*progressCallBack)(int64_t, int, float)) {
     int ret = 0, i, j, k;
     AVFormatContext *oc;
     OutputStream *ost;
@@ -3540,7 +3540,7 @@ static int transcode_init(void) {
 
     /* open each encoder */
     for (i = 0; i < nb_output_streams; i++) {
-        ret = init_output_stream(output_streams[i], error, sizeof(error));
+        ret = init_output_stream(output_streams[i], error, sizeof(error), handle, progressCallBack);
         if (ret < 0)
             goto dump_format;
     }
@@ -3565,7 +3565,7 @@ static int transcode_init(void) {
     for (i = 0; i < nb_output_files; i++) {
         oc = output_files[i]->ctx;
         if (oc->oformat->flags & AVFMT_NOSTREAMS && oc->nb_streams == 0) {
-            ret = check_init_output_file(output_files[i], i);
+            ret = check_init_output_file(output_files[i], i, handle, progressCallBack);
             if (ret < 0)
                 goto dump_format;
         }
@@ -3871,7 +3871,7 @@ static void *input_thread(void *arg) {
             ret = av_thread_message_queue_send(f->in_thread_queue, &pkt, flags);
             av_log(f->ctx, AV_LOG_WARNING,
                    "Thread message queue blocking; consider raising the "
-                           "thread_queue_size option (current value: %d)\n",
+                   "thread_queue_size option (current value: %d)\n",
                    f->thread_queue_size);
         }
         if (ret < 0) {
@@ -3997,7 +3997,8 @@ static AVRational duration_max(int64_t tmp, int64_t *duration, AVRational tmp_ti
     return time_base;
 }
 
-static int seek_to_start(InputFile *ifile, AVFormatContext *is) {
+static int seek_to_start(InputFile *ifile, AVFormatContext *is, int64_t handle,
+                         void (*progressCallBack)(int64_t, int, float)) {
     InputStream *ist;
     AVCodecContext *avctx;
     int i, ret, has_audio = 0;
@@ -4013,7 +4014,7 @@ static int seek_to_start(InputFile *ifile, AVFormatContext *is) {
 
         // flush decoders
         if (ist->decoding_needed) {
-            process_input_packet(ist, NULL, 1);
+            process_input_packet(ist, NULL, 1, handle, progressCallBack);
             avcodec_flush_buffers(avctx);
         }
 
@@ -4064,7 +4065,8 @@ static int seek_to_start(InputFile *ifile, AVFormatContext *is) {
  *   this function should be called again
  * - AVERROR_EOF -- this function should not be called again
  */
-static int process_input(int file_index) {
+static int process_input(int file_index, int64_t handle,
+                         void (*progressCallBack)(int64_t, int, float)) {
     InputFile *ifile = input_files[file_index];
     AVFormatContext *is;
     InputStream *ist;
@@ -4081,7 +4083,7 @@ static int process_input(int file_index) {
         return ret;
     }
     if (ret < 0 && ifile->loop) {
-        if ((ret = seek_to_start(ifile, is)) < 0)
+        if ((ret = seek_to_start(ifile, is, handle, progressCallBack)) < 0)
             return ret;
         ret = get_input_packet(ifile, &pkt);
         if (ret == AVERROR(EAGAIN)) {
@@ -4099,7 +4101,7 @@ static int process_input(int file_index) {
         for (i = 0; i < ifile->nb_streams; i++) {
             ist = input_streams[ifile->ist_index + i];
             if (ist->decoding_needed) {
-                ret = process_input_packet(ist, NULL, 0);
+                ret = process_input_packet(ist, NULL, 0, handle, progressCallBack);
                 if (ret > 0)
                     return 0;
             }
@@ -4315,7 +4317,7 @@ static int process_input(int file_index) {
 
     sub2video_heartbeat(ist, pkt.pts);
 
-    process_input_packet(ist, &pkt, 0);
+    process_input_packet(ist, &pkt, 0, handle, progressCallBack);
 
     discard_packet:
     av_packet_unref(&pkt);
@@ -4330,7 +4332,8 @@ static int process_input(int file_index) {
  * @param[out] best_ist  input stream where a frame would allow to continue
  * @return  0 for success, <0 for error
  */
-static int transcode_from_filter(FilterGraph *graph, InputStream **best_ist) {
+static int transcode_from_filter(FilterGraph *graph, InputStream **best_ist, int64_t handle,
+                                 void (*progressCallBack)(int64_t, int, float)) {
     int i, ret;
     int nb_requests, nb_requests_max = 0;
     InputFilter *ifilter;
@@ -4339,10 +4342,10 @@ static int transcode_from_filter(FilterGraph *graph, InputStream **best_ist) {
     *best_ist = NULL;
     ret = avfilter_graph_request_oldest(graph->graph);
     if (ret >= 0)
-        return reap_filters(0);
+        return reap_filters(0, handle, progressCallBack);
 
     if (ret == AVERROR_EOF) {
-        ret = reap_filters(1);
+        ret = reap_filters(1, handle, progressCallBack);
         for (i = 0; i < graph->nb_outputs; i++)
             close_output_stream(graph->outputs[i]->ost);
         return ret;
@@ -4375,7 +4378,8 @@ static int transcode_from_filter(FilterGraph *graph, InputStream **best_ist) {
  *
  * @return  0 for success, <0 for error
  */
-static int transcode_step(void) {
+static int transcode_step(int64_t handle,
+                          void (*progressCallBack)(int64_t, int, float)) {
     OutputStream *ost;
     InputStream *ist;
     int ret;
@@ -4392,7 +4396,7 @@ static int transcode_step(void) {
     }
 
     if (ost->filter) {
-        if ((ret = transcode_from_filter(ost->filter->graph, &ist)) < 0)
+        if ((ret = transcode_from_filter(ost->filter->graph, &ist, handle, progressCallBack)) < 0)
             return ret;
         if (!ist)
             return 0;
@@ -4400,8 +4404,7 @@ static int transcode_step(void) {
         av_assert0(ost->source_index >= 0);
         ist = input_streams[ost->source_index];
     }
-
-    ret = process_input(ist->file_index);
+    ret = process_input(ist->file_index, handle, progressCallBack);
     if (ret == AVERROR(EAGAIN)) {
         if (input_files[ist->file_index]->eagain)
             ost->unavailable = 1;
@@ -4410,14 +4413,13 @@ static int transcode_step(void) {
 
     if (ret < 0)
         return ret == AVERROR_EOF ? 0 : ret;
-
-    return reap_filters(0);
+    return reap_filters(0, handle, progressCallBack);
 }
 
 /*
  * The following code is the main loop of the file converter
  */
-static int transcode(void) {
+static int transcode(int64_t handle, void (*progressCallBack)(int64_t, int, float)) {
     int ret, i;
     AVFormatContext *os;
     OutputStream *ost;
@@ -4425,7 +4427,7 @@ static int transcode(void) {
     int64_t timer_start;
     int64_t total_packets_written = 0;
 
-    ret = transcode_init();
+    ret = transcode_init(handle, progressCallBack);
     if (ret < 0)
         goto fail;
 
@@ -4454,7 +4456,7 @@ static int transcode(void) {
             break;
         }
 
-        ret = transcode_step();
+        ret = transcode_step(handle, progressCallBack);
         if (ret < 0 && ret != AVERROR_EOF) {
             char errbuf[128];
             av_strerror(ret, errbuf, sizeof(errbuf));
@@ -4474,10 +4476,10 @@ static int transcode(void) {
     for (i = 0; i < nb_input_streams; i++) {
         ist = input_streams[i];
         if (!input_files[ist->file_index]->eof_reached && ist->decoding_needed) {
-            process_input_packet(ist, NULL, 0);
+            process_input_packet(ist, NULL, 0, handle, progressCallBack);
         }
     }
-    flush_encoders();
+    flush_encoders(handle, progressCallBack);
 
     term_exit();
 
@@ -4606,12 +4608,10 @@ int register_lib() {
     return 0;
 }
 
-int run(int callbackType, int argc, char **argv, void (*progressCallBack)(int, int, float)) {
+int run(int64_t handle, int argc, char **argv, void (*progressCallBack)(int64_t, int, float)) {
     int i, ret;
     int64_t ti;
     ffmpeg_cmd_step = 0;
-    globalProgressCallBack = progressCallBack;
-    CALL_BACK_TYPE = callbackType;
 
     init_dynload();
 
@@ -4668,7 +4668,7 @@ int run(int callbackType, int argc, char **argv, void (*progressCallBack)(int, i
     }
 
     current_time = ti = getutime();
-    if (transcode() < 0)
+    if (transcode(handle, progressCallBack) < 0)
         return exit_program(-1);
     ti = getutime() - ti;
     if (do_benchmark) {
@@ -4680,6 +4680,5 @@ int run(int callbackType, int argc, char **argv, void (*progressCallBack)(int, i
         exit_program(-1);
 
     exit_program(received_nb_signals ? 255 : main_return_code);
-    CALL_BACK_TYPE = CALLBACK_TYPE_CMD;
     return main_return_code;
 }
