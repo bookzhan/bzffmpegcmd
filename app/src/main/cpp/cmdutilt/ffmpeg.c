@@ -753,14 +753,14 @@ static void write_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost) {
                 int loglevel = max - pkt->dts > 2 || st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO
                                ? AV_LOG_WARNING : AV_LOG_DEBUG;
                 av_log(s, loglevel, "Non-monotonous DTS in output stream "
-                               "%d:%d; previous: %"PRId64", current: %"PRId64"; ",
+                                    "%d:%d; previous: %"PRId64", current: %"PRId64"; ",
                        ost->file_index, ost->st->index, ost->last_mux_dts, pkt->dts);
                 if (exit_on_error) {
                     av_log(NULL, AV_LOG_FATAL, "aborting.\n");
                     return;
                 }
                 av_log(s, loglevel, "changing to %"PRId64". This may result "
-                               "in incorrect timestamps in the output file.\n",
+                                    "in incorrect timestamps in the output file.\n",
                        max);
                 if (pkt->pts >= pkt->dts)
                     pkt->pts = FFMAX(pkt->pts, max);
@@ -777,7 +777,7 @@ static void write_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost) {
 
     if (debug_ts) {
         av_log(NULL, AV_LOG_INFO, "muxer <- type:%s "
-                       "pkt_pts:%s pkt_pts_time:%s pkt_dts:%s pkt_dts_time:%s size:%d\n",
+                                  "pkt_pts:%s pkt_pts_time:%s pkt_dts:%s pkt_dts_time:%s size:%d\n",
                av_get_media_type_string(ost->enc_ctx->codec_type),
                av_ts2str(pkt->pts), av_ts2timestr(pkt->pts, &ost->st->time_base),
                av_ts2str(pkt->dts), av_ts2timestr(pkt->dts, &ost->st->time_base),
@@ -789,7 +789,7 @@ static void write_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost) {
         NULL != ost->sync_ist->st && ost->sync_ist->st->duration > 0 && pkt->pts > 0 &&
         ffmpeg_cmd_step % 10 == 0) {//回调次数缩小10倍
         globalProgressCallBack(CALL_BACK_TYPE, CALLBACK_WHAT_MESSAGE_PROGRESS,
-                               (float) (1.0 * pkt->pts / ost->sync_ist->st->duration));
+                               (float) (1.0 * pkt->dts / ost->st->duration));
     }
     if (AVMEDIA_TYPE_VIDEO == st->codecpar->codec_type) {
         ffmpeg_cmd_step++;
@@ -872,7 +872,7 @@ static void output_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost) {
     finish:
     if (ret < 0 && ret != AVERROR_EOF) {
         av_log(NULL, AV_LOG_ERROR, "Error applying bitstream filters to an output "
-                "packet for stream #%d:%d.\n", ost->file_index, ost->index);
+                                   "packet for stream #%d:%d.\n", ost->file_index, ost->index);
         if (exit_on_error)
             return;
     }
@@ -913,7 +913,7 @@ static void do_audio_out(OutputFile *of, OutputStream *ost,
     update_benchmark(NULL);
     if (debug_ts) {
         av_log(NULL, AV_LOG_INFO, "encoder <- type:audio "
-                       "frame_pts:%s frame_pts_time:%s time_base:%d/%d\n",
+                                  "frame_pts:%s frame_pts_time:%s time_base:%d/%d\n",
                av_ts2str(frame->pts), av_ts2timestr(frame->pts, &enc->time_base),
                enc->time_base.num, enc->time_base.den);
     }
@@ -935,7 +935,7 @@ static void do_audio_out(OutputFile *of, OutputStream *ost,
 
         if (debug_ts) {
             av_log(NULL, AV_LOG_INFO, "encoder -> type:audio "
-                    "pkt_pts:%s pkt_pts_time:%s pkt_dts:%s pkt_dts_time:%s\n",
+                                      "pkt_pts:%s pkt_pts_time:%s pkt_dts:%s pkt_dts_time:%s\n",
                    av_ts2str(pkt.pts), av_ts2timestr(pkt.pts, &ost->st->time_base),
                    av_ts2str(pkt.dts), av_ts2timestr(pkt.dts, &ost->st->time_base));
         }
@@ -1279,7 +1279,7 @@ static void do_video_out(OutputFile *of,
             update_benchmark(NULL);
             if (debug_ts) {
                 av_log(NULL, AV_LOG_INFO, "encoder <- type:video "
-                               "frame_pts:%s frame_pts_time:%s time_base:%d/%d\n",
+                                          "frame_pts:%s frame_pts_time:%s time_base:%d/%d\n",
                        av_ts2str(in_picture->pts), av_ts2timestr(in_picture->pts, &enc->time_base),
                        enc->time_base.num, enc->time_base.den);
             }
@@ -1300,7 +1300,7 @@ static void do_video_out(OutputFile *of,
 
                 if (debug_ts) {
                     av_log(NULL, AV_LOG_INFO, "encoder -> type:video "
-                            "pkt_pts:%s pkt_pts_time:%s pkt_dts:%s pkt_dts_time:%s\n",
+                                              "pkt_pts:%s pkt_pts_time:%s pkt_dts:%s pkt_dts_time:%s\n",
                            av_ts2str(pkt.pts), av_ts2timestr(pkt.pts, &enc->time_base),
                            av_ts2str(pkt.dts), av_ts2timestr(pkt.dts, &enc->time_base));
                 }
@@ -1312,7 +1312,7 @@ static void do_video_out(OutputFile *of,
 
                 if (debug_ts) {
                     av_log(NULL, AV_LOG_INFO, "encoder -> type:video "
-                            "pkt_pts:%s pkt_pts_time:%s pkt_dts:%s pkt_dts_time:%s\n",
+                                              "pkt_pts:%s pkt_pts_time:%s pkt_dts:%s pkt_dts_time:%s\n",
                            av_ts2str(pkt.pts), av_ts2timestr(pkt.pts, &ost->st->time_base),
                            av_ts2str(pkt.dts), av_ts2timestr(pkt.dts, &ost->st->time_base));
                 }
@@ -2059,7 +2059,7 @@ int guess_input_channel_layout(InputStream *ist) {
         av_get_channel_layout_string(layout_name, sizeof(layout_name),
                                      dec->channels, dec->channel_layout);
         av_log(NULL, AV_LOG_WARNING, "Guessed Channel Layout for Input Stream "
-                "#%d.%d : %s\n", ist->file_index, ist->st->index, layout_name);
+                                     "#%d.%d : %s\n", ist->file_index, ist->st->index, layout_name);
     }
     return 1;
 }
@@ -2155,7 +2155,7 @@ static int decode_audio(InputStream *ist, AVPacket *pkt, int *got_output) {
 
         if (!guess_input_channel_layout(ist)) {
             av_log(NULL, AV_LOG_FATAL, "Unable to find default channel "
-                           "layout for Input Stream #%d.%d\n", ist->file_index,
+                                       "layout for Input Stream #%d.%d\n", ist->file_index,
                    ist->st->index);
             return exit_program(-1);
         }
@@ -2276,9 +2276,9 @@ static int decode_video(InputStream *ist, AVPacket *pkt, int *got_output, int eo
         } else
             av_log(ist->dec_ctx, AV_LOG_WARNING,
                    "video_delay is larger in decoder than demuxer %d > %d.\n"
-                           "If you want to help, upload a sample "
-                           "of this file to ftp://upload.ffmpeg.org/incoming/ "
-                           "and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)",
+                   "If you want to help, upload a sample "
+                   "of this file to ftp://upload.ffmpeg.org/incoming/ "
+                   "and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)",
                    ist->dec_ctx->has_b_frames,
                    ist->st->codecpar->video_delay);
     }
@@ -2335,7 +2335,7 @@ static int decode_video(InputStream *ist, AVPacket *pkt, int *got_output, int eo
 
     if (debug_ts) {
         av_log(NULL, AV_LOG_INFO, "decoder -> ist_index:%d type:video "
-                       "frame_pts:%s frame_pts_time:%s best_effort_ts:%"PRId64" best_effort_ts_time:%s keyframe:%d frame_type:%d time_base:%d/%d\n",
+                                  "frame_pts:%s frame_pts_time:%s best_effort_ts:%"PRId64" best_effort_ts_time:%s keyframe:%d frame_type:%d time_base:%d/%d\n",
                ist->st->index, av_ts2str(decoded_frame->pts),
                av_ts2timestr(decoded_frame->pts, &ist->st->time_base),
                best_effort_timestamp,
@@ -2719,7 +2719,7 @@ static enum AVPixelFormat get_format(AVCodecContext *s, const enum AVPixelFormat
             if (ist->hwaccel_id == hwaccel->id) {
                 av_log(NULL, AV_LOG_FATAL,
                        "%s hwaccel requested for input stream #%d:%d, "
-                               "but cannot be initialized.\n", hwaccel->name,
+                       "but cannot be initialized.\n", hwaccel->name,
                        ist->file_index, ist->st->index);
                 return AV_PIX_FMT_NONE;
             }
@@ -2789,7 +2789,7 @@ static int init_input_stream(int ist_index, char *error, int error_len) {
 
             snprintf(error, error_len,
                      "Error while opening decoder for input stream "
-                             "#%d:%d : %s",
+                     "#%d:%d : %s",
                      ist->file_index, ist->st->index, av_err2str(ret));
             return ret;
         }
@@ -2828,7 +2828,7 @@ static int check_init_output_file(OutputFile *of, int file_index) {
     if (ret < 0) {
         av_log(NULL, AV_LOG_ERROR,
                "Could not write header for output file #%d "
-                       "(incorrect codec parameters ?): %s",
+               "(incorrect codec parameters ?): %s",
                file_index, av_err2str(ret));
         return ret;
     }
@@ -3019,7 +3019,7 @@ static int init_output_stream_streamcopy(OutputStream *ost) {
                         av_mul_q(ost->frame_aspect_ratio,
                                  (AVRational) {par_dst->height, par_dst->width});
                 av_log(NULL, AV_LOG_WARNING, "Overriding aspect ratio "
-                        "with stream copy may produce invalid files\n");
+                                             "with stream copy may produce invalid files\n");
             } else if (ist->st->sample_aspect_ratio.num)
                 sar = ist->st->sample_aspect_ratio;
             else
@@ -3081,7 +3081,7 @@ static int init_output_stream(OutputStream *ost, char *error, int error_len) {
                 abort_codec_experimental(codec, 1);
             snprintf(error, error_len,
                      "Error while opening encoder for output stream #%d:%d - "
-                             "maybe incorrect parameters such as bit_rate, rate, width or height",
+                     "maybe incorrect parameters such as bit_rate, rate, width or height",
                      ost->file_index, ost->index);
             return ret;
         }
@@ -3092,7 +3092,7 @@ static int init_output_stream(OutputStream *ost, char *error, int error_len) {
         assert_avoptions(ost->encoder_opts);
         if (ost->enc_ctx->bit_rate && ost->enc_ctx->bit_rate < 1000)
             av_log(NULL, AV_LOG_WARNING, "The bitrate parameter is set too low."
-                    " It takes bits/s as argument, not kbits/s\n");
+                                         " It takes bits/s as argument, not kbits/s\n");
 
         ret = avcodec_parameters_from_context(ost->st->codecpar, ost->enc_ctx);
         if (ret < 0) {
@@ -3374,9 +3374,9 @@ static int transcode_init(void) {
                     ost->frame_rate = (AVRational) {25, 1};
                     av_log(NULL, AV_LOG_WARNING,
                            "No information "
-                                   "about the input framerate is available. Falling "
-                                   "back to a default value of 25fps for output stream #%d:%d. Use the -r option "
-                                   "if you want a different framerate.\n",
+                           "about the input framerate is available. Falling "
+                           "back to a default value of 25fps for output stream #%d:%d. Use the -r option "
+                           "if you want a different framerate.\n",
                            ost->file_index, ost->index);
                 }
 //                    ost->frame_rate = ist->st->avg_frame_rate.num ? ist->st->avg_frame_rate : (AVRational){25, 1};
@@ -3414,7 +3414,7 @@ static int transcode_init(void) {
                              !(oc->oformat->flags & AVFMT_VARIABLE_FPS)))) {
                         av_log(oc, AV_LOG_WARNING,
                                "Frame rate very high for a muxer not efficiently supporting it.\n"
-                                       "Please consider specifying a lower framerate, a different muxer or -vsync 2\n");
+                               "Please consider specifying a lower framerate, a different muxer or -vsync 2\n");
                     }
                     for (j = 0; j < ost->forced_kf_count; j++)
                         ost->forced_kf_pts[j] = av_rescale_q(ost->forced_kf_pts[j],
@@ -3433,14 +3433,14 @@ static int transcode_init(void) {
                         ost->filter->filter->inputs[0]->format != AV_PIX_FMT_YUV420P)
                         av_log(NULL, AV_LOG_WARNING,
                                "No pixel format specified, %s for H.264 encoding chosen.\n"
-                                       "Use -pix_fmt yuv420p for compatibility with outdated media players.\n",
+                               "Use -pix_fmt yuv420p for compatibility with outdated media players.\n",
                                av_get_pix_fmt_name(ost->filter->filter->inputs[0]->format));
                     if (!strncmp(ost->enc->name, "mpeg2video", 10) &&
                         enc_ctx->pix_fmt == AV_PIX_FMT_NONE &&
                         ost->filter->filter->inputs[0]->format != AV_PIX_FMT_YUV420P)
                         av_log(NULL, AV_LOG_WARNING,
                                "No pixel format specified, %s for MPEG-2 encoding chosen.\n"
-                                       "Use -pix_fmt yuv420p for compatibility with outdated media players.\n",
+                               "Use -pix_fmt yuv420p for compatibility with outdated media players.\n",
                                av_get_pix_fmt_name(ost->filter->filter->inputs[0]->format));
                     enc_ctx->pix_fmt = ost->filter->filter->inputs[0]->format;
                     if (dec_ctx)
@@ -3795,7 +3795,7 @@ static int check_keyboard_interaction(int64_t cur_time) {
         } else {
             av_log(NULL, AV_LOG_ERROR,
                    "Parse error, at least 3 arguments were expected, "
-                           "only %d given in string '%s'\n", n, buf);
+                   "only %d given in string '%s'\n", n, buf);
         }
     }
     if (key == 'd' || key == 'D') {
@@ -3832,15 +3832,15 @@ static int check_keyboard_interaction(int64_t cur_time) {
     }
     if (key == '?') {
         fprintf(stderr, "key    function\n"
-                "?      show this help\n"
-                "+      increase verbosity\n"
-                "-      decrease verbosity\n"
-                "c      Send command to first matching filter supporting it\n"
-                "C      Send/Queue command to all matching filters\n"
-                "D      cycle through available debug modes\n"
-                "h      dump packets/hex press to cycle through the 3 states\n"
-                "q      quit\n"
-                "s      Show QP histogram\n"
+                        "?      show this help\n"
+                        "+      increase verbosity\n"
+                        "-      decrease verbosity\n"
+                        "c      Send command to first matching filter supporting it\n"
+                        "C      Send/Queue command to all matching filters\n"
+                        "D      cycle through available debug modes\n"
+                        "h      dump packets/hex press to cycle through the 3 states\n"
+                        "q      quit\n"
+                        "s      Show QP histogram\n"
         );
     }
     return 0;
@@ -4147,7 +4147,7 @@ static int process_input(int file_index) {
 
     if (debug_ts) {
         av_log(NULL, AV_LOG_INFO, "demuxer -> ist_index:%d type:%s "
-                       "next_dts:%s next_dts_time:%s next_pts:%s next_pts_time:%s pkt_pts:%s pkt_pts_time:%s pkt_dts:%s pkt_dts_time:%s off:%s off_time:%s\n",
+                                  "next_dts:%s next_dts_time:%s next_pts:%s next_pts_time:%s pkt_pts:%s pkt_pts_time:%s pkt_dts:%s pkt_dts_time:%s off:%s off_time:%s\n",
                ifile->ist_index + pkt.stream_index,
                av_get_media_type_string(ist->dec_ctx->codec_type),
                av_ts2str(ist->next_dts), av_ts2timestr(ist->next_dts, &AV_TIME_BASE_Q),
@@ -4487,7 +4487,7 @@ static int transcode(void) {
         if (!output_files[i]->header_written) {
             av_log(NULL, AV_LOG_ERROR,
                    "Nothing was written into output file %d (%s), because "
-                           "at least one of its streams received no packets.\n",
+                   "at least one of its streams received no packets.\n",
                    i, os->filename);
             continue;
         }
