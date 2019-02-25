@@ -1,37 +1,6 @@
 #include <string.h>
 #include "ffmpeg.h"
 
-//#include <android/log.h>
-//#include <jni.h>
-//
-//const char *TAG = "bz_";
-//
-//void log_call_back(void *ptr, int level, const char *fmt, va_list vl) {
-//    //自定义的日志
-//    if (level == 3) {
-//        __android_log_vprint(ANDROID_LOG_ERROR, TAG, fmt, vl);
-//    } else if (level == 2) {
-//        __android_log_vprint(ANDROID_LOG_DEBUG, TAG, fmt, vl);
-//    } else if (level == 1) {
-//        __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
-//    } else {
-//        if (level <= 16) {//ffmpeg 来的日志
-//            __android_log_vprint(ANDROID_LOG_ERROR, TAG, fmt, vl);
-//        } else if (level == 48) {
-//            __android_log_vprint(ANDROID_LOG_DEBUG, TAG, fmt, vl);
-//        } else {
-////            __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
-//        }
-//    }
-//}
-//
-////回调合并进度
-//void progressCallBack(int type, int what, float progress) {
-////    LOGD("progressCallBack=%f", progress);
-//    __android_log_print(ANDROID_LOG_DEBUG, TAG, "type=%d--what=%d--progress=%f", type, what,
-//                        progress);
-//}
-
 int executeFFmpegCommand(int64_t handle, const char *command,
                          void (*progressCallBack)(int64_t, int, float)) {
 
@@ -78,22 +47,3 @@ int executeFFmpegCommand(int64_t handle, const char *command,
     return ret;
 }
 
-//
-//JNIEXPORT jint JNICALL
-//Java_com_luoye_bzmedia_FFmpegUtil_executeFFmpegCommand(JNIEnv *env, jclass type, jstring command_,
-//                                                       jboolean needProgressCallBack) {
-//    int ret = 0;
-//    const char *command = (*env)->GetStringUTFChars(env, command_, 0);
-//
-//    av_log_set_callback(log_call_back);
-//    register_lib();
-//
-//    if (needProgressCallBack) {
-//        ret = executeFFmpegCommand(0, command, progressCallBack);
-//    } else {
-//        ret = executeFFmpegCommand(0, command, NULL);
-//    }
-//
-//    (*env)->ReleaseStringUTFChars(env, command_, command);
-//    return ret;
-//}

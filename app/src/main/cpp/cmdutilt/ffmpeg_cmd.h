@@ -4,10 +4,16 @@
 
 #ifndef FFMPEGCMD_FFMPEG_CMD_H
 #define FFMPEGCMD_FFMPEG_CMD_H
+//#include <cstdint>
+//小于0失败,>0成功
+#ifdef __cplusplus
 
-#include <pty.h>
-
+extern "C" {
+#endif
 //小于0失败,>0成功
 int executeFFmpegCommand(int64_t handle, const char *, void (*progressCallBack)(int64_t, int, float));
+#ifdef __cplusplus
+}
+#endif
 
 #endif //FFMPEGCMD_FFMPEG_CMD_H
