@@ -525,6 +525,9 @@ typedef struct OutputStream {
 
     /* frame encode sum of squared error values */
     int64_t error[4];
+
+    int64_t duration;
+    int hasVideoStream;
 } OutputStream;
 
 typedef struct OutputFile {

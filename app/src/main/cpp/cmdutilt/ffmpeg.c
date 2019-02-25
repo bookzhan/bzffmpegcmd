@@ -775,22 +775,26 @@ static void write_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost, int64
                pkt->size
         );
     }
-    if (NULL != progressCallBack && st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO &&
-        NULL != ost->sync_ist && NULL != ost->st && NULL != pkt &&
-        NULL != ost->sync_ist->st && ost->sync_ist->st->duration > 0 && pkt->dts > 0 &&
+    enum AVMediaType avMediaType;
+    if (ost->hasVideoStream) {
+        avMediaType = AVMEDIA_TYPE_VIDEO;
+    } else {
+        avMediaType = AVMEDIA_TYPE_AUDIO;
+    }
+    if (NULL != progressCallBack && st->codecpar->codec_type == avMediaType && NULL != ost->st &&
+        NULL != pkt && pkt->dts > 0 && ost->duration > 0 &&
         ffmpeg_cmd_step % 10 == 0) {//回调次数缩小10倍
 
-        int64_t temp = av_rescale_q(ost->sync_ist->st->duration,
-                                    ost->sync_ist->st->time_base,
-                                    ost->st->time_base);
+        int64_t temp = pkt->dts * 1000 * ost->st->time_base.num /
+                       ost->st->time_base.den;
         if (temp <= 0)temp = 1;
-        float tempProgress = (float) (1.0 * pkt->dts / temp);
+        float tempProgress = (float) (1.0 * temp / ost->duration);
 
         if (tempProgress < 0)tempProgress = 0;
         if (tempProgress > 1)tempProgress = 1;
         progressCallBack(handle, CALLBACK_WHAT_MESSAGE_PROGRESS, tempProgress);
     }
-    if (AVMEDIA_TYPE_VIDEO == st->codecpar->codec_type) {
+    if (avMediaType == st->codecpar->codec_type) {
         ffmpeg_cmd_step++;
     }
 
@@ -3552,7 +3556,19 @@ static int transcode_init(int64_t handle, void (*progressCallBack)(int64_t, int,
         if (ret < 0)
             goto dump_format;
     }
-
+    int hasVideoStream = 0;
+    for (i = 0; i < nb_output_streams; i++) {
+        OutputStream *outputStream = output_streams[i];
+        if (NULL != outputStream->st &&
+            outputStream->st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+            hasVideoStream = 1;
+            break;
+        }
+    }
+    for (i = 0; i < nb_output_streams; i++) {
+        OutputStream *outputStream = output_streams[i];
+        outputStream->hasVideoStream = hasVideoStream;
+    }
     /* discard unused programs */
     for (i = 0; i < nb_input_files; i++) {
         InputFile *ifile = input_files[i];
@@ -4330,6 +4346,10 @@ static int process_input(int file_index, int64_t handle,
     discard_packet:
     av_packet_unref(&pkt);
 
+    for (i = 0; i < nb_output_streams; i++) {
+        OutputStream *ost = output_streams[i];
+        ost->duration = is->duration / 1000;
+    }
     return 0;
 }
 
