@@ -623,6 +623,19 @@ static void ffmpeg_cleanup(int ret) {
     }
     term_exit();
     ffmpeg_exited = 1;
+
+    nb_filtergraphs = 0;
+
+    progress_avio = NULL;
+    input_streams = NULL;
+    nb_input_streams = 0;
+    input_files = NULL;
+    nb_input_files = 0;
+
+    output_streams = NULL;
+    nb_output_streams = 0;
+    output_files = NULL;
+    nb_output_files = 0;
 }
 
 void remove_avoptions(AVDictionary **a, AVDictionary *b) {
@@ -705,13 +718,13 @@ static void write_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost, int u
                 return;
             }
             ret = av_fifo_realloc2(ost->muxing_queue, new_size);
-            if (ret < 0){
+            if (ret < 0) {
                 exit_program(1);
                 return;
             }
         }
         ret = av_packet_ref(&tmp_pkt, pkt);
-        if (ret < 0){
+        if (ret < 0) {
             exit_program(1);
             return;
         }
