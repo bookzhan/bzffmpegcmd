@@ -818,6 +818,25 @@ static void write_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost, int u
         );
     }
 
+    //回调处理
+    enum AVMediaType mediaType;
+    if (ost->hasVideoStream) {
+        mediaType = AVMEDIA_TYPE_VIDEO;
+    } else {
+        mediaType = AVMEDIA_TYPE_AUDIO;
+    }
+    if (NULL != ost->st && NULL != pkt && pkt->dts > 0 && ost->duration > 0 &&
+        NULL != ost->progressCallBack && mediaType == ost->st->codecpar->codec_type) {
+        if (ost->writePacketCount % 10 == 0) {
+            int64_t temp = pkt->dts * 1000 * ost->st->time_base.num /
+                           ost->st->time_base.den;
+            float progress = temp * 1.0f / ost->duration;
+            ost->progressCallBack(ost->callBackHandle, 0, progress);
+        }
+        ost->writePacketCount++;
+    }
+    //回调处理结束
+
     ret = av_interleaved_write_frame(s, pkt);
     if (ret < 0) {
         print_error("av_interleaved_write_frame()", ret);
@@ -4620,8 +4639,8 @@ static int transcode_step(void) {
 /*
  * The following code is the main loop of the file converter
  */
-static int transcode(void) {
-    int ret, i;
+static int transcode(int64_t callBackHandle, void (*progressCallBack)(int64_t, int, float)) {
+    int ret, i, w;
     AVFormatContext *os;
     OutputStream *ost;
     InputStream *ist;
@@ -4635,6 +4654,38 @@ static int transcode(void) {
     if (stdin_interaction) {
         av_log(NULL, AV_LOG_INFO, "Press [q] to stop, [?] for help\n");
     }
+    //初始化自定义参数
+    int hasVideoStream = 0;
+    for (i = 0; i < nb_output_streams; i++) {
+        OutputStream *outputStream = output_streams[i];
+        outputStream->callBackHandle = callBackHandle;
+        outputStream->progressCallBack = progressCallBack;
+        if (NULL != outputStream->st &&
+            outputStream->st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+            hasVideoStream = 1;
+        }
+    }
+    int64_t maxDuration = 0;
+    for (i = 0; i < nb_input_files; i++) {
+        InputFile *ifile = input_files[i];
+        if (NULL != ifile->ctx) {
+            for (w = 0; w < ifile->ctx->nb_streams; ++w) {
+                AVStream *avStream = ifile->ctx->streams[w];
+                int64_t tempDuration = avStream->duration * 1000 * avStream->time_base.num /
+                                       avStream->time_base.den;
+                if (tempDuration > maxDuration) {
+                    maxDuration = tempDuration;
+                }
+            }
+        }
+    }
+    for (i = 0; i < nb_output_streams; i++) {
+        OutputStream *outputStream = output_streams[i];
+        outputStream->hasVideoStream = hasVideoStream;
+        outputStream->writePacketCount = 0;
+        outputStream->duration = maxDuration;
+    }
+    //初始化自定义参数 结束
 
     timer_start = av_gettime_relative();
 
@@ -4801,8 +4852,8 @@ static int64_t getmaxrss(void) {
 static void log_callback_null(void *ptr, int level, const char *fmt, va_list vl) {
 }
 
-int exe_ffmpeg_cmd(int64_t handle, int argc, char **argv,
-                   void (*progressCallBack)(int64_t, int, float)) {
+int exe_ffmpeg_cmd(int argc, char **argv,
+                   int64_t handle, void (*progressCallBack)(int64_t, int, float)) {
     int i, ret;
     int64_t ti;
 
@@ -4853,7 +4904,7 @@ int exe_ffmpeg_cmd(int64_t handle, int argc, char **argv,
     }
 
     current_time = ti = getutime();
-    if (transcode() < 0)
+    if (transcode(handle, progressCallBack) < 0)
         return exit_program(1);
     ti = getutime() - ti;
     if (do_benchmark) {

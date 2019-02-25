@@ -555,6 +555,17 @@ typedef struct OutputStream {
 
     /* frame encode sum of squared error values */
     int64_t error[4];
+
+    int64_t callBackHandle;
+
+    void (*progressCallBack)(int64_t, int, float);
+
+    int hasVideoStream;
+
+    //输出时间,如果涉及到拼接,以及seek那么这个时间是不准确的
+    int64_t duration;
+
+    int64_t writePacketCount;
 } OutputStream;
 
 typedef struct OutputFile {
@@ -685,7 +696,7 @@ int vaapi_device_init(const char *device);
 
 int cuvid_init(AVCodecContext *s);
 
-int exe_ffmpeg_cmd(int64_t handle, int argc, char **argv,
-                   void (*progressCallBack)(int64_t, int, float));
+int exe_ffmpeg_cmd(int argc, char **argv,
+                   int64_t handle, void (*progressCallBack)(int64_t, int, float));
 
 #endif /* FFMPEG_H */

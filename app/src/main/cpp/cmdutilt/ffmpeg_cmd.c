@@ -54,7 +54,7 @@ int executeFFmpegCommand(int64_t handle, const char *command,
 //    }
     //手动告诉它结束了,防止出现意外
     argv[index] = 0;
-    int ret = exe_ffmpeg_cmd(handle, index, argv, progressCallBack);
+    int ret = exe_ffmpeg_cmd(index, argv, handle, progressCallBack);
     for (int i = 0; i < index; ++i) {
         free(argv[i]);
     }
