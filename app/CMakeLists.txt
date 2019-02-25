@@ -48,7 +48,7 @@ set_target_properties(bzffmpeg-lib
 include_directories(
         src/main/cpp/cmdutilt
         src/main/cpp/cmdutilt/ffmpeg_cmd.h
-        src/main/cpp/include/${ANDROID_ABI}/config.h
+        src/main/cpp/include/${ANDROID_ABI}
         src/main/cpp/include
         /Users/luoye/Git/GitLab/ffmpeg-android-build/ffmpeg
 )
