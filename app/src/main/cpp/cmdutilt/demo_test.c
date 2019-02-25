@@ -47,9 +47,15 @@ Java_com_luoye_bzmedia_FFmpegUtil_executeFFmpegCommand(JNIEnv *env, jclass type,
     int ret = 0;
     const char *command = (*env)->GetStringUTFChars(env, command_, 0);
 
-    av_log_set_callback(log_call_back);
-    register_lib();
+    avcodec_register_all();
+#if CONFIG_AVDEVICE
+    avdevice_register_all();
+#endif
+    avfilter_register_all();
+    av_register_all();
+    avformat_network_init();
 
+    av_log_set_callback(log_call_back);
     if (needProgressCallBack) {
         ret = executeFFmpegCommand(-99, command, progressCallBack);
     } else {

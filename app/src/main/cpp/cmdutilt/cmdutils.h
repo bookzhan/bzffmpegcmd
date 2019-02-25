@@ -59,7 +59,7 @@ void register_exit(void (*cb)(int ret));
 /**
  * Wraps exit with a program-specific cleanup routine.
  */
-int exit_program(int ret);
+void exit_program(int ret) av_noreturn;
 
 /**
  * Initialize dynamic library loading
@@ -440,6 +440,20 @@ int show_license(void *optctx, const char *opt, const char *arg);
  * This option processing function does not utilize the arguments.
  */
 int show_formats(void *optctx, const char *opt, const char *arg);
+
+/**
+ * Print a listing containing all the muxers supported by the
+ * program (including devices).
+ * This option processing function does not utilize the arguments.
+ */
+int show_muxers(void *optctx, const char *opt, const char *arg);
+
+/**
+ * Print a listing containing all the demuxer supported by the
+ * program (including devices).
+ * This option processing function does not utilize the arguments.
+ */
+int show_demuxers(void *optctx, const char *opt, const char *arg);
 
 /**
  * Print a listing containing all the devices supported by the
