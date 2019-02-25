@@ -348,7 +348,7 @@ sigterm_handler(int sig) {
 #if HAVE_SETCONSOLECTRLHANDLER
 static BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
 {
-    av_log(NULL, AV_LOG_DEBUG, "\nReceived windows signal %ld\n", fdwCtrlType);
+    av_log(NULL, AV_LOG_VERBOSE, "\nReceived windows signal %ld\n", fdwCtrlType);
 
     switch (fdwCtrlType)
     {
@@ -783,7 +783,7 @@ static void write_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost, int u
             int64_t max = ost->last_mux_dts + !(s->oformat->flags & AVFMT_TS_NONSTRICT);
             if (pkt->dts < max) {
                 int loglevel = max - pkt->dts > 2 || st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO
-                               ? AV_LOG_WARNING : AV_LOG_DEBUG;
+                               ? AV_LOG_WARNING : AV_LOG_VERBOSE;
                 av_log(s, loglevel, "Non-monotonous DTS in output stream "
                                     "%d:%d; previous: %"PRId64", current: %"PRId64"; ",
                        ost->file_index, ost->st->index, ost->last_mux_dts, pkt->dts);
@@ -1156,7 +1156,7 @@ static void do_video_out(OutputFile *of,
             if (delta0 < -0.6) {
                 av_log(NULL, AV_LOG_WARNING, "Past duration %f too large\n", -delta0);
             } else
-                av_log(NULL, AV_LOG_DEBUG, "Clipping frame in rate conversion by %f\n", -delta0);
+                av_log(NULL, AV_LOG_VERBOSE, "Clipping frame in rate conversion by %f\n", -delta0);
             sync_ipts = ost->sync_opts;
             duration += delta0;
             delta0 = 0;
@@ -1165,7 +1165,7 @@ static void do_video_out(OutputFile *of,
         switch (format_video_sync) {
             case VSYNC_VSCFR:
                 if (ost->frame_number == 0 && delta0 >= 0.5) {
-                    av_log(NULL, AV_LOG_DEBUG, "Not duplicating %d initial frames\n",
+                    av_log(NULL, AV_LOG_VERBOSE, "Not duplicating %d initial frames\n",
                            (int) lrintf(delta0));
                     delta = duration;
                     delta0 = 0;
@@ -1325,7 +1325,7 @@ static void do_video_out(OutputFile *of,
 
             if (forced_keyframe) {
                 in_picture->pict_type = AV_PICTURE_TYPE_I;
-                av_log(NULL, AV_LOG_DEBUG, "Forced keyframe at time %f\n", pts_time);
+                av_log(NULL, AV_LOG_VERBOSE, "Forced keyframe at time %f\n", pts_time);
             }
 
             update_benchmark(NULL);
@@ -2508,7 +2508,7 @@ static int decode_video(InputStream *ist, AVPacket *pkt, int *got_output, int eo
         if (ist->dec_ctx->width != decoded_frame->width ||
             ist->dec_ctx->height != decoded_frame->height ||
             ist->dec_ctx->pix_fmt != decoded_frame->format) {
-            av_log(NULL, AV_LOG_DEBUG, "Frame parameters mismatch context %d,%d,%d != %d,%d,%d\n",
+            av_log(NULL, AV_LOG_VERBOSE, "Frame parameters mismatch context %d,%d,%d != %d,%d,%d\n",
                    decoded_frame->width,
                    decoded_frame->height,
                    decoded_frame->format,
@@ -2598,7 +2598,7 @@ static int transcode_subtitles(InputStream *ist, AVPacket *pkt, int *got_output,
             end = av_rescale(subtitle.pts - ist->prev_sub.subtitle.pts,
                              1000, AV_TIME_BASE);
             if (end < ist->prev_sub.subtitle.end_display_time) {
-                av_log(ist->dec_ctx, AV_LOG_DEBUG,
+                av_log(ist->dec_ctx, AV_LOG_VERBOSE,
                        "Subtitle duration reduced from %"PRId32" to %d%s\n",
                        ist->prev_sub.subtitle.end_display_time, end,
                        end <= 0 ? ", dropping it" : "");
@@ -3903,7 +3903,7 @@ static OutputStream *choose_output(void) {
                        av_rescale_q(ost->st->cur_dts, ost->st->time_base,
                                     AV_TIME_BASE_Q);
         if (ost->st->cur_dts == AV_NOPTS_VALUE)
-            av_log(NULL, AV_LOG_DEBUG,
+            av_log(NULL, AV_LOG_VERBOSE,
                    "cur_dts is invalid (this is harmless if it occurs once at the start per stream)\n");
 
         if (!ost->initialized && !ost->inputs_done)
@@ -3951,7 +3951,7 @@ static int check_keyboard_interaction(int64_t cur_time) {
             do_hex_dump = 1;
         } else
             do_pkt_dump = 1;
-        av_log_set_level(AV_LOG_DEBUG);
+        av_log_set_level(AV_LOG_VERBOSE);
     }
     if (key == 'c' || key == 'C') {
         char buf[4096], target[64], command[256], arg[256] = {0};
@@ -3968,7 +3968,7 @@ static int check_keyboard_interaction(int64_t cur_time) {
         fprintf(stderr, "\n");
         if (k > 0 &&
             (n = sscanf(buf, "%63[^ ] %lf %255[^ ] %255[^\n]", target, &time, command, arg)) >= 3) {
-            av_log(NULL, AV_LOG_DEBUG, "Processing command target:%s time:%f command:%s arg:%s",
+            av_log(NULL, AV_LOG_VERBOSE, "Processing command target:%s time:%f command:%s arg:%s",
                    target, time, command, arg);
             for (i = 0; i < nb_filtergraphs; i++) {
                 FilterGraph *fg = filtergraphs[i];
@@ -4027,7 +4027,7 @@ static int check_keyboard_interaction(int64_t cur_time) {
             OutputStream *ost = output_streams[i];
             ost->enc_ctx->debug = debug;
         }
-        if (debug) av_log_set_level(AV_LOG_DEBUG);
+        if (debug) av_log_set_level(AV_LOG_VERBOSE);
         fprintf(stderr, "debug=%d\n", debug);
     }
     if (key == '?') {
@@ -4438,7 +4438,7 @@ static int process_input(int file_index) {
         if (delta < -1LL * dts_delta_threshold * AV_TIME_BASE ||
             delta > 1LL * dts_delta_threshold * AV_TIME_BASE) {
             ifile->ts_offset -= delta;
-            av_log(NULL, AV_LOG_DEBUG,
+            av_log(NULL, AV_LOG_VERBOSE,
                    "Inter stream timestamp discontinuity %"PRId64", new offset= %"PRId64"\n",
                    delta, ifile->ts_offset);
             pkt.dts -= av_rescale_q(delta, AV_TIME_BASE_Q, ist->st->time_base);
@@ -4469,7 +4469,7 @@ static int process_input(int file_index) {
                 delta > 1LL * dts_delta_threshold * AV_TIME_BASE ||
                 pkt_dts + AV_TIME_BASE / 10 < FFMAX(ist->pts, ist->dts)) {
                 ifile->ts_offset -= delta;
-                av_log(NULL, AV_LOG_DEBUG,
+                av_log(NULL, AV_LOG_VERBOSE,
                        "timestamp discontinuity %"PRId64", new offset= %"PRId64"\n",
                        delta, ifile->ts_offset);
                 pkt.dts -= av_rescale_q(delta, AV_TIME_BASE_Q, ist->st->time_base);
@@ -4910,7 +4910,8 @@ int exe_ffmpeg_cmd(int argc, char **argv,
     if (do_benchmark) {
         av_log(NULL, AV_LOG_INFO, "bench: utime=%0.3fs\n", ti / 1000000.0);
     }
-    av_log(NULL, AV_LOG_DEBUG, "%"PRIu64" frames successfully decoded, %"PRIu64" decoding errors\n",
+    av_log(NULL, AV_LOG_VERBOSE,
+           "%"PRIu64" frames successfully decoded, %"PRIu64" decoding errors\n",
            decode_error_stat[0], decode_error_stat[1]);
     if ((decode_error_stat[0] + decode_error_stat[1]) * max_error_rate < decode_error_stat[1])
         return exit_program(69);
