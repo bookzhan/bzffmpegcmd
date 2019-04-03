@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity {
 //        cmd = "ffmpeg -y -i /sdcard/Filter/temp_6.mp4 -i /sdcard/Filter/input_bg.aac -filter_complex [0:a]aformat=fltp:44100:stereo,volume=0.5,apad[0a];[1]aformat=fltp:44100:stereo,volume=1[1a];[0a][1a]amerge[a] -map 0:v -map [a] -ac 2 /sdcard/Filter/output.mp4";
 //                String cmd = "ffmpeg -y -i /sdcard/bzmedia/VID_231_r270.mp4 /sdcard/bzmedia/out_" + System.nanoTime() + ".mp4";
 //                String cmd = "ffmpeg -y -ss 13.658 -t 13.418 -i /sdcard/bzmedia/VID_3093.mp4 -acodec copy -vcodec copy /sdcard/bzmedia/test.mp4";
-                String cmd = "ffmpeg -y ffmpeg -y -ss 0 -t 10.123 -i /sdcard/bzmedia/out_na.mp4 -vn -acodec copy /sdcard/bzmedia/out_test.m4a";
+                String cmd = "ffmpeg -y -ss 0 -t 10.123 -i /sdcard/bzmedia/out_na.mp4 -vn -acodec copy /sdcard/bzmedia/out_test.m4a";
                 long startTime = System.currentTimeMillis();
                 int ret = FFmpegUtil.executeFFmpegCommand(cmd, true);
                 Log.d(TAG, "ret=" + ret + "-----耗时=" + (System.currentTimeMillis() - startTime));
