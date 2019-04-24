@@ -16,14 +16,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef FFTOOLS_FFMPEG_H
-#define FFTOOLS_FFMPEG_H
+#ifndef FFMPEG_H
+#define FFMPEG_H
 
 #include "config.h"
 
 #include <stdint.h>
 #include <stdio.h>
 #include <signal.h>
+
+#if HAVE_PTHREADS
+
+#include <pthread.h>
+
+#endif
 
 #include "cmdutils.h"
 
@@ -38,19 +44,11 @@
 #include "libavutil/dict.h"
 #include "libavutil/eval.h"
 #include "libavutil/fifo.h"
-#include "libavutil/hwcontext.h"
 #include "libavutil/pixfmt.h"
 #include "libavutil/rational.h"
-#include "libavutil/thread.h"
 #include "libavutil/threadmessage.h"
 
 #include "libswresample/swresample.h"
-
-#define CALLBACK_TYPE_CMD 0
-
-#define CALLBACK_WHAT_MESSAGE_ERROR 0
-#define CALLBACK_WHAT_MESSAGE_PROGRESS 1
-#define CALLBACK_WHAT_MESSAGE_FINISH 2
 
 #define VSYNC_AUTO       -1
 #define VSYNC_PASSTHROUGH 0
@@ -64,9 +62,12 @@
 enum HWAccelID {
     HWACCEL_NONE = 0,
     HWACCEL_AUTO,
-    HWACCEL_GENERIC,
+    HWACCEL_VDPAU,
+    HWACCEL_DXVA2,
+    HWACCEL_VDA,
     HWACCEL_VIDEOTOOLBOX,
     HWACCEL_QSV,
+    HWACCEL_VAAPI,
     HWACCEL_CUVID,
 };
 
@@ -78,12 +79,6 @@ typedef struct HWAccel {
     enum HWAccelID id;
     enum AVPixelFormat pix_fmt;
 } HWAccel;
-
-typedef struct HWDevice {
-    char *name;
-    enum AVHWDeviceType type;
-    AVBufferRef *device_ref;
-} HWDevice;
 
 /* select an input stream for an output stream */
 typedef struct StreamMap {
@@ -161,7 +156,6 @@ typedef struct OptionsContext {
     float mux_preload;
     float mux_max_delay;
     int shortest;
-    int bitexact;
 
     int video_disable;
     int audio_disable;
@@ -236,8 +230,6 @@ typedef struct OptionsContext {
     int nb_program;
     SpecifierOpt *time_bases;
     int nb_time_bases;
-    SpecifierOpt *enc_time_bases;
-    int nb_enc_time_bases;
 } OptionsContext;
 
 typedef struct InputFilter {
@@ -370,11 +362,11 @@ typedef struct InputStream {
 
     /* hwaccel options */
     enum HWAccelID hwaccel_id;
-    enum AVHWDeviceType hwaccel_device_type;
     char *hwaccel_device;
     enum AVPixelFormat hwaccel_output_format;
 
     /* hwaccel context */
+    enum HWAccelID active_hwaccel_id;
     void *hwaccel_ctx;
 
     void (*hwaccel_uninit)(AVCodecContext *s);
@@ -424,7 +416,7 @@ typedef struct InputFile {
     int rate_emu;
     int accurate_seek;
 
-#if HAVE_THREADS
+#if HAVE_PTHREADS
     AVThreadMessageQueue *in_thread_queue;
     pthread_t thread;           /* thread reading from this file */
     int non_blocking;           /* reading packets from the thread should not block */
@@ -469,9 +461,9 @@ typedef struct OutputStream {
     int64_t last_mux_dts;
     // the timebase of the packets sent to the muxer
     AVRational mux_timebase;
-    AVRational enc_timebase;
 
     int nb_bitstream_filters;
+    uint8_t *bsf_extradata_updated;
     AVBSFContext **bsf_ctx;
 
     AVCodecContext *enc_ctx;
@@ -496,7 +488,6 @@ typedef struct OutputStream {
     AVRational frame_aspect_ratio;
 
     /* forced key frames */
-    int64_t forced_kf_ref_pts;
     int64_t *forced_kf_pts;
     int forced_kf_count;
     int forced_kf_index;
@@ -539,6 +530,9 @@ typedef struct OutputStream {
 
     int keep_pix_fmt;
 
+    AVCodecParserContext *parser;
+    AVCodecContext *parser_avctx;
+
     /* stats */
     // combined size of all the packets written
     uint64_t data_size;
@@ -561,6 +555,17 @@ typedef struct OutputStream {
 
     /* frame encode sum of squared error values */
     int64_t error[4];
+
+    int64_t callBackHandle;
+
+    void (*progressCallBack)(int64_t, int, float);
+
+    int hasVideoStream;
+
+    //输出时间,如果涉及到拼接,以及seek那么这个时间是不准确的
+    int64_t duration;
+
+    int64_t writePacketCount;
 } OutputStream;
 
 typedef struct OutputFile {
@@ -627,11 +632,11 @@ extern const AVIOInterruptCB int_cb;
 
 extern const OptionDef options[];
 extern const HWAccel hwaccels[];
+extern int hwaccel_lax_profile_check;
 extern AVBufferRef *hw_device_ctx;
 #if CONFIG_QSV
 extern char *qsv_device;
 #endif
-extern HWDevice *filter_hw_device;
 
 
 void term_init(void);
@@ -675,29 +680,23 @@ int ifilter_parameters_from_frame(InputFilter *ifilter, const AVFrame *frame);
 
 int ffmpeg_parse_options(int argc, char **argv);
 
+int vdpau_init(AVCodecContext *s);
+
+int dxva2_init(AVCodecContext *s);
+
+int vda_init(AVCodecContext *s);
+
 int videotoolbox_init(AVCodecContext *s);
 
 int qsv_init(AVCodecContext *s);
 
+int vaapi_decode_init(AVCodecContext *avctx);
+
+int vaapi_device_init(const char *device);
+
 int cuvid_init(AVCodecContext *s);
 
-HWDevice *hw_device_get_by_name(const char *name);
+int exe_ffmpeg_cmd(int argc, char **argv,
+                   int64_t handle, void (*progressCallBack)(int64_t, int, float));
 
-int hw_device_init_from_string(const char *arg, HWDevice **dev);
-
-void hw_device_free_all(void);
-
-int hw_device_setup_for_decode(InputStream *ist);
-
-int hw_device_setup_for_encode(OutputStream *ost);
-
-int hwaccel_decode_init(AVCodecContext *avctx);
-
-static void (*globalProgressCallBack)(int, int, float)=NULL;
-
-static int ffmpeg_cmd_step = 0;
-int run(int callbackType, int argc, char **argv, void (*progressCallBack)(int, int, float));
-
-int register_lib();
-
-#endif /* FFTOOLS_FFMPEG_H */
+#endif /* FFMPEG_H */

@@ -1,73 +1,64 @@
 #include <string.h>
 #include "ffmpeg.h"
 
-//#include <android/log.h>
-//#include <jni.h>
-//
-//const char *TAG = "bookzhan";
-//
-//void log_call_back(void *ptr, int level, const char *fmt, va_list vl) {
-//    //自定义的日志
-//    if (level == 3) {
-//        __android_log_vprint(ANDROID_LOG_ERROR, TAG, fmt, vl);
-//    } else if (level == 2) {
-//        __android_log_vprint(ANDROID_LOG_DEBUG, TAG, fmt, vl);
-//    } else if (level == 1) {
-//        __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
-//    } else {
-//        if (level <= 16) {//ffmpeg 来的日志
-//            __android_log_vprint(ANDROID_LOG_ERROR, TAG, fmt, vl);
-//        } else {
-//            __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
-//        }
-//    }
-//}
-//
-////回调合并进度
-//void progressCallBack(int type, int what, float progress) {
-////    LOGD("progressCallBack=%f", progress);
-//    __android_log_print(ANDROID_LOG_DEBUG, TAG, "type=%d--what=%d--progress=%f", type, what,
-//                        progress);
-//}
+//保证同时只能一个线程执行
+static pthread_mutex_t cmdLock;
+static int cmdLockHasInit = 0;
 
-int executeFFmpegCommand(int callbackType, const char *command,
-                         void (*progressCallBack)(int, int, float)) {
-
-    char str[1024] = {0};
-
-    strlcpy(str, command, strlen(command) + 1);
-    char *argv[strlen(command)];
-
-    const char *delims = " ";
-    char *result = strtok(str, delims);
-
-    int index = 0;
-    while (result != NULL) {
-        argv[index] = result;
-        result = strtok(NULL, delims);
-        index++;
+int executeFFmpegCommand(int64_t handle, const char *command,
+                         void (*progressCallBack)(int64_t, int, float)) {
+    if (NULL == command) {
+        av_log(NULL, AV_LOG_ERROR, "NULL==command");
+        return -1;
     }
+    av_log(NULL, AV_LOG_DEBUG, "cmd=%s", command);
+    if (!cmdLockHasInit) {
+        pthread_mutex_init(&cmdLock, NULL);//初始化
+        cmdLockHasInit = 1;
+    }
+    pthread_mutex_lock(&cmdLock);
+
+    char *pCommand = (char *) command;
+    int stingLen = strlen(command);
+    char *argv[stingLen];
+
+    char *buffer = NULL;
+    int index = 0;
+    int isStartYH = 0;
+    for (int i = 0; i < stingLen; ++i) {
+        char str = *pCommand;
+        pCommand++;
+        if (NULL == buffer) {
+            buffer = malloc(512);
+            memset(buffer, 0, 512);
+            argv[index++] = buffer;
+        }
+        //保证引号成对出现
+        if (str == '"') {
+            if (isStartYH) {
+                isStartYH = 0;
+            } else {
+                isStartYH = 1;
+            }
+            continue;
+        }
+        if (str != ' ' || isStartYH) {
+            *buffer = str;
+            buffer++;
+        } else {
+            buffer = NULL;
+        }
+    }
+//    for (int i = 0; i < index; ++i) {
+//        av_log(NULL, AV_LOG_DEBUG, "cmd=%s", argv[i]);
+//    }
     //手动告诉它结束了,防止出现意外
     argv[index] = 0;
-    return run(callbackType, index, argv, progressCallBack);
+    int ret = exe_ffmpeg_cmd(index, argv, handle, progressCallBack);
+    for (int i = 0; i < index; ++i) {
+        free(argv[i]);
+    }
+    pthread_mutex_unlock(&cmdLock);
+    return ret;
 }
 
-
-//JNIEXPORT jint JNICALL
-//Java_com_luoye_bzmedia_FFmpegUtil_executeFFmpegCommand(JNIEnv *env, jclass type, jstring command_,
-//                                                       jboolean needProgressCallBack) {
-//    int ret = 0;
-//    const char *command = (*env)->GetStringUTFChars(env, command_, 0);
-//
-//    av_log_set_callback(log_call_back);
-//    register_lib();
-//
-//    if (needProgressCallBack) {
-//        ret = executeFFmpegCommand(9, command, progressCallBack);
-//    } else {
-//        ret = executeFFmpegCommand(100, command, NULL);
-//    }
-//
-//    (*env)->ReleaseStringUTFChars(env, command_, command);
-//    return ret;
-//}
