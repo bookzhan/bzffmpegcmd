@@ -50,7 +50,7 @@ include_directories(
         src/main/cpp/cmdutilt/ffmpeg_cmd.h
         src/main/cpp/include/${ANDROID_ABI}
         src/main/cpp/include
-        /Users/luoye/Git/GitLab/ffmpeg-android-build/ffmpeg
+        /Volumes/Transcend/Git/GitLab/ffmpeg-android-build/ffmpeg
 )
 
 
