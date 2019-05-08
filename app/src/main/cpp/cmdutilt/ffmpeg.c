@@ -827,7 +827,7 @@ static void write_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost, int u
     }
     if (NULL != ost->st && NULL != pkt && pkt->dts > 0 && ost->duration > 0 &&
         NULL != ost->progressCallBack && mediaType == ost->st->codecpar->codec_type) {
-        if (ost->writePacketCount % 10 == 0) {
+        if (ost->writePacketCount % 2 == 0) {
             int64_t temp = pkt->dts * 1000 * ost->st->time_base.num /
                            ost->st->time_base.den;
             float progress = temp * 1.0f / ost->duration;
