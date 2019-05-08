@@ -46,25 +46,12 @@ set_target_properties(bzffmpeg-lib
         libbzffmpeg.so)
 
 
-
-
-if (${ANDROID_ABI} STREQUAL armeabi-v7a)
-    set(ffmpeg_dir
-            /Volumes/Data/Git/Github/ijkplayer-master/android/contrib/ffmpeg-armv7a
-            )
-
-else ()
-    set(ffmpeg_dir
-            /Volumes/Data/Git/Github/ijkplayer-master/android/contrib/ffmpeg-arm64
-            )
-endif ()
-
 include_directories(
         src/main/cpp/cmdutilt
         src/main/cpp/cmdutilt/ffmpeg_cmd.h
         src/main/cpp/include/${ANDROID_ABI}
         src/main/cpp/include
-        ${ffmpeg_dir}
+        /Volumes/Data/Git/GitLab/ffmpeg-android-build/ffmpeg
 )
 
 
