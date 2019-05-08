@@ -720,11 +720,6 @@ typedef struct AVInputFormat {
     int (*read_header)(struct AVFormatContext *);
 
     /**
-     * Used by format which open further nested input.
-     */
-    int (*read_header2)(struct AVFormatContext *, AVDictionary **options);
-
-    /**
      * Read one packet and put it in 'pkt'. pts and flags are also
      * set. 'avformat_new_stream' can be called only if the flag
      * AVFMTCTX_NOHEADER is used and only in the calling thread (not in a
@@ -2959,7 +2954,6 @@ int avformat_match_stream_specifier(AVFormatContext *s, AVStream *st,
 
 int avformat_queue_attached_pictures(AVFormatContext *s);
 
-#if FF_API_OLD_BSF
 /**
  * Apply a list of bitstream filters to a packet.
  *
@@ -2971,6 +2965,7 @@ int avformat_queue_attached_pictures(AVFormatContext *s);
  * @return  >=0 on success;
  *          AVERROR code on failure
  */
+#if FF_API_OLD_BSF
 attribute_deprecated
 int av_apply_bitstream_filters(AVCodecContext *codec, AVPacket *pkt,
                                AVBitStreamFilterContext *bsfc);
