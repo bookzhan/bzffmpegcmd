@@ -11,7 +11,7 @@ int executeFFmpegCommand(int64_t handle, const char *command,
         av_log(NULL, AV_LOG_ERROR, "NULL==command");
         return -1;
     }
-    av_log(NULL, AV_LOG_DEBUG, "cmd=%s", command);
+    av_log(NULL, AV_LOG_DEBUG, "bz_cmd=%s", command);
     if (!cmdLockHasInit) {
         pthread_mutex_init(&cmdLock, NULL);//初始化
         cmdLockHasInit = 1;
@@ -19,7 +19,7 @@ int executeFFmpegCommand(int64_t handle, const char *command,
     pthread_mutex_lock(&cmdLock);
 
     char *pCommand = (char *) command;
-    int stingLen = strlen(command);
+    int stingLen = (int) (strlen(command) + 1);
     char *argv[stingLen];
 
     char *buffer = NULL;

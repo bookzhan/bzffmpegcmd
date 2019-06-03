@@ -4718,7 +4718,7 @@ static int transcode(int64_t callBackHandle, void (*progressCallBack)(int64_t, i
         }
 
         /* dump report by using the output first video and audio streams */
-        print_report(0, timer_start, cur_time);
+//        print_report(0, timer_start, cur_time);
     }
 #if HAVE_PTHREADS
     free_input_threads();
@@ -4754,7 +4754,7 @@ static int transcode(int64_t callBackHandle, void (*progressCallBack)(int64_t, i
     }
 
     /* dump report by using the first video and audio streams */
-    print_report(1, timer_start, av_gettime_relative());
+//    print_report(1, timer_start, av_gettime_relative());
 
     /* close each encoder */
     for (i = 0; i < nb_output_streams; i++) {
