@@ -64,6 +64,8 @@ public class MainActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                long startTime = System.currentTimeMillis();
+
 //                        String cmd = "ffmpeg -y -i /sdcard/bzmedia/temp_132.mp4 -i /sdcard/bzmedia/2岁男童差一秒被甩下电梯 地铁站务员飞奔救人-高清视频在线观看-资讯-爱奇艺.mp4 -map 0:v -vcodec copy -map 1:a -acodec copy /storage/emulated/0/bzmedia/video_replace_1543826101491872.mp4";
 //                String cmd = "ffmpeg -y -i /sdcard/bzmedia/VID_231_r270.mp4 -i /sdcard/bzmedia/av_test_1080x1920_16_r0.mp4 -filter_complex amix=inputs=2 -vn /storage/emulated/0/bzmedia/mix_" + System.nanoTime() + ".m4a";
 
@@ -72,16 +74,13 @@ public class MainActivity extends AppCompatActivity {
 
 
 //        cmd = "ffmpeg -y -i /sdcard/Filter/temp_6.mp4 -i /sdcard/Filter/input_bg.aac -filter_complex [0:a]aformat=fltp:44100:stereo,volume=0.5,apad[0a];[1]aformat=fltp:44100:stereo,volume=1[1a];[0a][1a]amerge[a] -map 0:v -map [a] -ac 2 /sdcard/Filter/output.mp4";
-//                String cmd = "ffmpeg -y -i /sdcard/bzmedia/VID_231_r270.mp4 /sdcard/bzmedia/out_" + System.nanoTime() + ".mp4";
+                String cmd = "ffmpeg -y -i /sdcard/bzmedia/VID_231_r270.mp4 /sdcard/bzmedia/out_" + System.nanoTime() + ".mp4";
 //                String cmd = "ffmpeg -y -ss 13.658 -t 13.418 -i /sdcard/bzmedia/VID_3093.mp4 -acodec copy -vcodec copy /sdcard/bzmedia/test.mp4";
 //                String cmd = "ffmpeg -y -ss 0 -t 10.123 -i /sdcard/bzmedia/out_na.mp4 -vn -acodec copy /sdcard/bzmedia/out_test.m4a";
 //                String cmd = "ffmpeg -y -i /sdcard/bzmedia/temp_16.mp4 /sdcard/bzmedia/out_test.mp4";
-                long startTime = System.currentTimeMillis();
-                String cmd = "ffmpeg -y -ss 0 -t 10.030 -i \"/storage/emulated/0/bzmedia/test.mp3\" -vn -acodec copy /storage/emulated/0/bzmedia/alignment_music_1559539530386715.mp3";
-                int ret = FFmpegUtil.executeFFmpegCommand(cmd, true);
-                cmd = "ffmpeg -y -i \"/storage/emulated/0/bzmedia/input_1.mp4\" -i \"/storage/emulated/0/bzmedia/alignment_music_1559539530386715.mp3\" -c:v copy -filter_complex [0:a]aformat=fltp:44100:stereo,volume=0.50,apad[0a];[1]aformat=fltp:44100:stereo,volume=0.30[1a];[0a][1a]amerge[a] -map 0:v -map [a] -ac 2 /storage/emulated/0/bzmedia/out_addBackgroundMusic.mp4";
 
-                ret = FFmpegUtil.executeFFmpegCommand(cmd, true);
+//                String cmd = "ffmpeg -y -ss 0 -t 10.030 -i \"/storage/emulated/0/bzmedia/test.mp3\" -vn -acodec copy /storage/emulated/0/bzmedia/alignment_music_1559539530386715.mp3";
+                int ret = FFmpegUtil.executeFFmpegCommand(cmd, true);
                 Log.d(TAG, "ret=" + ret + "-----耗时=" + (System.currentTimeMillis() - startTime));
             }
         }).start();
