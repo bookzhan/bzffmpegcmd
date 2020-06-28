@@ -14,6 +14,7 @@ add_library( # Sets the name of the library.
 
         SHARED
 
+        src/main/cpp/cmdutilt/ffmpeg_hw.c;
         src/main/cpp/cmdutilt/cmdutils.c;
         src/main/cpp/cmdutilt/ffmpeg.c;
         src/main/cpp/cmdutilt/ffmpeg_filter.c;
@@ -51,7 +52,7 @@ include_directories(
         src/main/cpp/cmdutilt/ffmpeg_cmd.h
         src/main/cpp/include/${ANDROID_ABI}
         src/main/cpp/include
-        /Volumes/Data/Git/GitLab/ffmpeg-android-build/ffmpeg
+        /Users/luoye/Git/Github/ffmpeg-android-build/ffmpeg
 )
 
 
