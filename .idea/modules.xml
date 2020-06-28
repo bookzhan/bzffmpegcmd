@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" group="ffmpegcmd/app" />
+      <module fileurl="file://$PROJECT_DIR$/bzcmd/bzcmd.iml" filepath="$PROJECT_DIR$/bzcmd/bzcmd.iml" group="ffmpegcmd/bzcmd" />
       <module fileurl="file://$PROJECT_DIR$/ffmpegcmd.iml" filepath="$PROJECT_DIR$/ffmpegcmd.iml" group="ffmpegcmd" />
     </modules>
   </component>

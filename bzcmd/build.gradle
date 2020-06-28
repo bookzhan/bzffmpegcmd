@@ -1,0 +1,51 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.novoda.bintray-release'
+
+publish {
+    userOrg = 'bookzhan'
+    groupId = 'com.luoye.bzlib'
+    artifactId = 'bzffmpegcmd'
+    publishVersion = '1.0.1'
+    uploadName = 'bzffmpegcmd'
+    repoName = 'bzlib'
+    desc = 'bzffmpegcmd'
+    website = 'https://github.com/bookzhan/bookzhan.github.io'
+    licences = ['Apache-2.0']
+}
+android {
+    compileSdkVersion 27
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 27
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'consumer-rules.pro'
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++11"
+            }
+            ndk {
+                abiFilters 'armeabi-v7a','arm64-v8a'
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+}

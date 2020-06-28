@@ -1,4 +1,4 @@
-package com.luoye.bzffmpeg;
+package com.luoye.bzffmpegcmd;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

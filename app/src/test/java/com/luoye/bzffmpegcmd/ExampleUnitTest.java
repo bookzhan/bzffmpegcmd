@@ -1,4 +1,4 @@
-package com.luoye.bzffmpeg;
+package com.luoye.bzffmpegcmd;
 
 import org.junit.Test;
 
