@@ -52,7 +52,6 @@ include_directories(
         src/main/cpp/cmdutilt/ffmpeg_cmd.h
         src/main/cpp/include/${ANDROID_ABI}
         src/main/cpp/include
-        /Users/luoye/Git/Github/ffmpeg-android-build/ffmpeg
 )
 
 
