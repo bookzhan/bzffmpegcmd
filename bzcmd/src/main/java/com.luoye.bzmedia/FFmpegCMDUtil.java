@@ -10,6 +10,8 @@ public class FFmpegCMDUtil {
         System.loadLibrary("bzffmpegcmd");
     }
 
+    public synchronized static native int showLog(boolean showLog);
+
     public synchronized static native int executeFFmpegCommand(String command, OnActionListener onActionListener);
 
     public interface OnActionListener {
