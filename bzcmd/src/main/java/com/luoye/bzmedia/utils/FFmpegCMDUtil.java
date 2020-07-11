@@ -1,4 +1,4 @@
-package com.luoye.bzmedia;
+package com.luoye.bzmedia.utils;
 
 /**
  * Created by zhandalin on 2017-05-25 16:20.

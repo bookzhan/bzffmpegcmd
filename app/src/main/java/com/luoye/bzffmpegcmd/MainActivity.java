@@ -9,7 +9,7 @@ import android.view.View;
 import android.widget.TextView;
 
 
-import com.luoye.bzmedia.FFmpegCMDUtil;
+import com.luoye.bzmedia.utils.FFmpegCMDUtil;
 
 import java.util.ArrayList;
 

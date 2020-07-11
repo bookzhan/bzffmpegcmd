@@ -43,7 +43,7 @@ void progressCallBack(int64_t handle, int what, float progress) {
 }
 
 JNIEXPORT jint JNICALL
-Java_com_luoye_bzmedia_FFmpegCMDUtil_executeFFmpegCommand(JNIEnv *env,
+Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_executeFFmpegCommand(JNIEnv *env,
                                                           jclass type,
                                                           jstring command_,
                                                           jobject actionCallBack) {
@@ -76,7 +76,7 @@ Java_com_luoye_bzmedia_FFmpegCMDUtil_executeFFmpegCommand(JNIEnv *env,
 }
 
 JNIEXPORT jint JNICALL
-Java_com_luoye_bzmedia_FFmpegCMDUtil_showLog(JNIEnv *env, jclass clazz, jboolean showLog) {
+Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_showLog(JNIEnv *env, jclass clazz, jboolean showLog) {
     if (showLog) {
         av_log_set_callback(log_call_back);
     } else {
