@@ -62,3 +62,7 @@ int executeFFmpegCommand(int64_t handle, const char *command,
     return ret;
 }
 
+int cancelExecuteFFmpegCommand() {
+    return cancel_exe_ffmpeg_cmd();
+}
+

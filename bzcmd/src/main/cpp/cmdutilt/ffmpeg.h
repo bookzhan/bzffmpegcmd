@@ -701,4 +701,5 @@ int hwaccel_decode_init(AVCodecContext *avctx);
 int exe_ffmpeg_cmd(int argc, char **argv,
                    int64_t handle, void (*progressCallBack)(int64_t, int, float));
 
+int cancel_exe_ffmpeg_cmd();
 #endif /* FFTOOLS_FFMPEG_H */

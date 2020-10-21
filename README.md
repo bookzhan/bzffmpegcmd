@@ -17,6 +17,6 @@ English documentation：
 #### How to use:
 
 1. Add below allprojects:maven { url 'https://dl.bintray.com/bookzhan/bzlib' }
-2. implementation 'com.luoye.bzlib:bzffmpegcmd:1.0.3'
+2. implementation 'com.luoye.bzlib:bzffmpegcmd:1.0.4'
 3. FFmpegCMDUtil.executeFFmpegCommand(String command, OnActionListener onActionListener)
 

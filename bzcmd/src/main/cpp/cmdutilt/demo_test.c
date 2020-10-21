@@ -27,6 +27,8 @@ void log_call_back(void *ptr, int level, const char *fmt, va_list vl) {
     } else {
         if (level <= 16) {//ffmpeg 来的日志
             __android_log_vprint(ANDROID_LOG_ERROR, TAG, fmt, vl);
+        } else if (level <= 24) {
+            __android_log_vprint(ANDROID_LOG_WARN, TAG, fmt, vl);
         } else {
 //            __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
         }
@@ -44,9 +46,9 @@ void progressCallBack(int64_t handle, int what, float progress) {
 
 JNIEXPORT jint JNICALL
 Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_executeFFmpegCommand(JNIEnv *env,
-                                                          jclass type,
-                                                          jstring command_,
-                                                          jobject actionCallBack) {
+                                                                jclass type,
+                                                                jstring command_,
+                                                                jobject actionCallBack) {
     int ret = 0;
     const char *command = (*env)->GetStringUTFChars(env, command_, 0);
     if (NULL != actionCallBack) {
@@ -83,4 +85,9 @@ Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_showLog(JNIEnv *env, jclass clazz, jb
         av_log_set_callback(NULL);
     }
     return 0;
+}
+
+JNIEXPORT jint JNICALL
+Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_cancelExecuteFFmpegCommand(JNIEnv *env, jclass clazz) {
+    return cancelExecuteFFmpegCommand();
 }

@@ -164,6 +164,7 @@ OutputStream **output_streams = NULL;
 int nb_output_streams = 0;
 OutputFile **output_files = NULL;
 int nb_output_files = 0;
+int request_cancel_exe_ffmpeg_cmd = 0;
 
 FilterGraph **filtergraphs;
 int nb_filtergraphs;
@@ -4808,6 +4809,10 @@ static int transcode(int64_t callBackHandle, void (*progressCallBack)(int64_t, i
 #endif
 
     while (!received_sigterm) {
+        if (request_cancel_exe_ffmpeg_cmd) {
+            av_log(NULL, AV_LOG_WARNING, "request_cancel_exe_ffmpeg_cmd\n");
+            break;
+        }
         int64_t cur_time = av_gettime_relative();
 
         /* if 'q' pressed, exits */
@@ -4820,7 +4825,6 @@ static int transcode(int64_t callBackHandle, void (*progressCallBack)(int64_t, i
             av_log(NULL, AV_LOG_VERBOSE, "No more output streams to write to, finishing.\n");
             break;
         }
-
         ret = transcode_step();
         if (ret < 0 && ret != AVERROR_EOF) {
             av_log(NULL, AV_LOG_ERROR, "Error while filtering: %s\n", av_err2str(ret));
@@ -4841,7 +4845,9 @@ static int transcode(int64_t callBackHandle, void (*progressCallBack)(int64_t, i
             process_input_packet(ist, NULL, 0);
         }
     }
-    flush_encoders();
+    if (!request_cancel_exe_ffmpeg_cmd) {
+        flush_encoders();
+    }
 
     term_exit();
 
@@ -4974,7 +4980,7 @@ int exe_ffmpeg_cmd(int argc, char **argv,
                    int64_t handle, void (*progressCallBack)(int64_t, int, float)) {
     int i, ret;
     BenchmarkTimeStamps ti;
-
+    request_cancel_exe_ffmpeg_cmd = 0;
     init_dynload();
 
     register_exit(ffmpeg_cleanup);
@@ -5041,4 +5047,9 @@ int exe_ffmpeg_cmd(int argc, char **argv,
 
     exit_program(received_nb_signals ? 255 : main_return_code);
     return main_return_code;
+}
+
+int cancel_exe_ffmpeg_cmd() {
+    request_cancel_exe_ffmpeg_cmd = 1;
+    return 0;
 }

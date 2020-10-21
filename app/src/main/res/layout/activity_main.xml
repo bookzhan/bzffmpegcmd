@@ -24,4 +24,12 @@
         android:layout_marginTop="50dp"
         android:onClick="start"
         android:text="start" />
+
+     <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:onClick="cancel"
+        android:text="cancel" />
+
 </LinearLayout>

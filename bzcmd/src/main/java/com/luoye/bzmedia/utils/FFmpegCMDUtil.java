@@ -10,9 +10,17 @@ public class FFmpegCMDUtil {
         System.loadLibrary("bzffmpegcmd");
     }
 
-    public synchronized static native int showLog(boolean showLog);
+    public static native int showLog(boolean showLog);
 
-    public synchronized static native int executeFFmpegCommand(String command, OnActionListener onActionListener);
+    /**
+     * Adding a thread lock at the native to allow only single-threaded execution
+     */
+    public static native int executeFFmpegCommand(String command, OnActionListener onActionListener);
+
+    /**
+     * This method and the executeFFmpegCommand method must be called in separate threads.
+     */
+    public static native int cancelExecuteFFmpegCommand();
 
     public interface OnActionListener {
         void progress(float progress);
