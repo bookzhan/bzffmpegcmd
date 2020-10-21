@@ -3,7 +3,7 @@
 #### 如何使用:
 
 1. 在allprojects下面添加: maven { url 'https://dl.bintray.com/bookzhan/bzlib' }
-2. implementation 'com.luoye.bzlib:bzffmpegcmd:1.0.3'
+2. implementation 'com.luoye.bzlib:bzffmpegcmd:1.0.4'
 3. FFmpegCMDUtil.executeFFmpegCommand(String command, OnActionListener onActionListener)
 
 
