@@ -1,15 +1,24 @@
 #include <string.h>
+#include <stdbool.h>
 #include "ffmpeg.h"
 
 //保证同时只能一个线程执行
 static pthread_mutex_t cmdLock;
 static int cmdLockHasInit = 0;
+bool hasRegistered = false;
 
 int executeFFmpegCommand(int64_t handle, const char *command,
                          void (*progressCallBack)(int64_t, int, float)) {
     if (NULL == command) {
         av_log(NULL, AV_LOG_ERROR, "NULL==command");
         return -1;
+    }
+    if (!hasRegistered) {
+        av_register_all();
+        avcodec_register_all();
+        avfilter_register_all();
+        avformat_network_init();
+        hasRegistered = true;
     }
     av_log(NULL, AV_LOG_DEBUG, "bz_cmd=%s", command);
     if (!cmdLockHasInit) {
