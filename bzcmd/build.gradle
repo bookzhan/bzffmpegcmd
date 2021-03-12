@@ -1,17 +1,17 @@
 apply plugin: 'com.android.library'
-//apply plugin: 'com.novoda.bintray-release'
-//
-//publish {
-//    userOrg = 'bookzhan'
-//    groupId = 'com.luoye.bzlib'
-//    artifactId = 'bzffmpegcmd'
-//    publishVersion = '1.0.5'
-//    uploadName = 'bzffmpegcmd'
-//    repoName = 'bzlib'
-//    desc = 'bzffmpegcmd'
-//    website = 'https://github.com/bookzhan/bookzhan.github.io'
-//    licences = ['Apache-2.0']
-//}
+apply plugin: 'com.github.panpf.bintray-publish'
+
+publish {
+    userOrg = 'bookzhan'
+    groupId = 'com.luoye.bzlib'
+    artifactId = 'bzffmpegcmd'
+    publishVersion = '1.0.5'
+    uploadName = 'bzffmpegcmd'
+    repoName = 'bzlib'
+    desc = 'bzffmpegcmd'
+    website = 'https://github.com/bookzhan/bookzhan.github.io'
+    licences = ['Apache-2.0']
+}
 android {
     compileSdkVersion 27
 
