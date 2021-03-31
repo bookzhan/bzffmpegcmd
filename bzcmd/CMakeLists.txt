@@ -35,7 +35,7 @@ find_library(log-lib log)
 find_library(m-lib m)
 find_library(z-lib z)
 
-configure_file(${Project_SOURCE_DIR}/src/main/cpp/jniLibs/${ANDROID_ABI}/libbzffmpeg.so ${Project_BINARY_DIR}/libbzffmpeg.so COPYONLY)
+configure_file(${Project_SOURCE_DIR}/src/main/jniLibs/${ANDROID_ABI}/libbzffmpeg.so ${Project_BINARY_DIR}/libbzffmpeg.so COPYONLY)
 
 
 #ffmpeg

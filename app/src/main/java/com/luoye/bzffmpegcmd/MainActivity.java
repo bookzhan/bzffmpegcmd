@@ -60,6 +60,8 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 long startTime = System.currentTimeMillis();
                 String cmd = "ffmpeg -y -i /sdcard/bzmedia/testvideo.mp4 /sdcard/bzmedia/out_" + System.nanoTime() + ".mp4";
+                //变速之后回调进度要乘以速度
+//                String cmd = "ffmpeg -y -i \"/storage/emulated/0/bzmedia/input_1.m4a\" -af atempo=10.000 \"/storage/emulated/0/bzmedia/audio_1617190120996.m4a\"";
 
 //                String cmd = "ffmpeg -y -i /sdcard/bzmedia/VID_029.mp4 -i /sdcard/bzmedia/VID_812.mp4 -filter_complex amix=inputs=2 -vn /storage/emulated/0/bzmedia/mix_" + System.nanoTime() + ".m4a";
 //
