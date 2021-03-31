@@ -15,7 +15,11 @@ public class FFmpegCMDUtil {
     /**
      * Adding a thread lock at the native to allow only single-threaded execution
      */
-    public static native int executeFFmpegCommand(String command, OnActionListener onActionListener);
+    public static int executeFFmpegCommand(String command, OnActionListener onActionListener) {
+        return executeFFmpegCommand(command, onActionListener, 1);
+    }
+
+    public static native int executeFFmpegCommand(String command, OnActionListener onActionListener, float correctionTimeMultiple);
 
     /**
      * This method and the executeFFmpegCommand method must be called in separate threads.

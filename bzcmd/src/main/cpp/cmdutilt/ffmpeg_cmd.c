@@ -7,11 +7,16 @@ static pthread_mutex_t cmdLock;
 static int cmdLockHasInit = 0;
 bool hasRegistered = false;
 
-int executeFFmpegCommand(int64_t handle, const char *command,
-                         void (*progressCallBack)(int64_t, int, float)) {
+
+int executeFFmpegCommand4CorrectionTimeMultiple(int64_t handle, const char *command,
+                                                void (*progressCallBack)(int64_t, int, float),
+                                                float correctionTimeMultiple) {
     if (NULL == command) {
         av_log(NULL, AV_LOG_ERROR, "NULL==command");
         return -1;
+    }
+    if (correctionTimeMultiple <= 0) {
+        correctionTimeMultiple = 0.1f;
     }
     if (!hasRegistered) {
         av_register_all();
@@ -63,12 +68,17 @@ int executeFFmpegCommand(int64_t handle, const char *command,
 //    }
     //手动告诉它结束了,防止出现意外
     argv[index] = 0;
-    int ret = exe_ffmpeg_cmd(index, argv, handle, progressCallBack);
+    int ret = exe_ffmpeg_cmd(index, argv, handle, progressCallBack, correctionTimeMultiple);
     for (int i = 0; i < index; ++i) {
         free(argv[i]);
     }
     pthread_mutex_unlock(&cmdLock);
     return ret;
+}
+
+int executeFFmpegCommand(int64_t handle, const char *command,
+                         void (*progressCallBack)(int64_t, int, float)) {
+    return executeFFmpegCommand4CorrectionTimeMultiple(handle, command, progressCallBack, 1);
 }
 
 int cancelExecuteFFmpegCommand() {

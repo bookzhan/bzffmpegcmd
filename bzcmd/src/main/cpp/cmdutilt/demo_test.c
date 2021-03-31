@@ -48,7 +48,8 @@ JNIEXPORT jint JNICALL
 Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_executeFFmpegCommand(JNIEnv *env,
                                                                 jclass type,
                                                                 jstring command_,
-                                                                jobject actionCallBack) {
+                                                                jobject actionCallBack,
+                                                                jfloat correctionTimeMultiple) {
     int ret = 0;
     const char *command = (*env)->GetStringUTFChars(env, command_, 0);
     if (NULL != actionCallBack) {
@@ -62,8 +63,8 @@ Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_executeFFmpegCommand(JNIEnv *env,
         onActionListener.env = env;
         onActionListener.obj = actionCallBack;
         onActionListener.methodID = progressMID;
-        ret = executeFFmpegCommand((int64_t) (&onActionListener), command,
-                                   progressCallBack);
+        ret = executeFFmpegCommand4CorrectionTimeMultiple((int64_t) (&onActionListener), command,
+                                                          progressCallBack, correctionTimeMultiple);
         if (ret < 0) {
             (*env)->CallVoidMethod(env, actionCallBack, failMID);
         } else {

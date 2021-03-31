@@ -4700,8 +4700,9 @@ static int transcode_step(void) {
 /*
  * The following code is the main loop of the file converter
  */
-static int transcode(int64_t callBackHandle, void (*progressCallBack)(int64_t, int, float)) {
-    int ret, i,w;
+static int transcode(int64_t callBackHandle, void (*progressCallBack)(int64_t, int, float),
+                     float correctionTimeMultiple) {
+    int ret, i, w;
     AVFormatContext *os;
     OutputStream *ost;
     InputStream *ist;
@@ -4740,6 +4741,7 @@ static int transcode(int64_t callBackHandle, void (*progressCallBack)(int64_t, i
             }
         }
     }
+    maxDuration *= correctionTimeMultiple;
     for (i = 0; i < nb_output_streams; i++) {
         OutputStream *outputStream = output_streams[i];
         outputStream->hasVideoStream = hasVideoStream;
@@ -4915,7 +4917,8 @@ static void log_callback_null(void *ptr, int level, const char *fmt, va_list vl)
 }
 
 int exe_ffmpeg_cmd(int argc, char **argv,
-                   int64_t handle, void (*progressCallBack)(int64_t, int, float)) {
+                   int64_t handle, void (*progressCallBack)(int64_t, int, float),
+                   float correctionTimeMultiple) {
     int i, ret;
     int64_t ti;
 
@@ -4974,7 +4977,7 @@ int exe_ffmpeg_cmd(int argc, char **argv,
     }
 
     current_time = ti = getutime();
-    if (transcode(handle, progressCallBack) < 0)
+    if (transcode(handle, progressCallBack,correctionTimeMultiple) < 0)
         return exit_program(1);
     ti = getutime() - ti;
     if (do_benchmark) {
