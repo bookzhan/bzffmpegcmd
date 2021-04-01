@@ -8,15 +8,12 @@ static int cmdLockHasInit = 0;
 bool hasRegistered = false;
 
 
-int executeFFmpegCommand4CorrectionTimeMultiple(int64_t handle, const char *command,
-                                                void (*progressCallBack)(int64_t, int, float),
-                                                float correctionTimeMultiple) {
+int executeFFmpegCommand4TotalTime(int64_t handle, const char * command,
+                                   void (*progressCallBack)(int64_t, int, float),
+                                   int64_t totalTime) {
     if (NULL == command) {
         av_log(NULL, AV_LOG_ERROR, "NULL==command");
         return -1;
-    }
-    if (correctionTimeMultiple <= 0) {
-        correctionTimeMultiple = 0.1f;
     }
     if (!hasRegistered) {
         av_register_all();
@@ -68,7 +65,7 @@ int executeFFmpegCommand4CorrectionTimeMultiple(int64_t handle, const char *comm
 //    }
     //手动告诉它结束了,防止出现意外
     argv[index] = 0;
-    int ret = exe_ffmpeg_cmd(index, argv, handle, progressCallBack, correctionTimeMultiple);
+    int ret = exe_ffmpeg_cmd(index, argv, handle, progressCallBack, totalTime);
     for (int i = 0; i < index; ++i) {
         free(argv[i]);
     }
@@ -78,7 +75,7 @@ int executeFFmpegCommand4CorrectionTimeMultiple(int64_t handle, const char *comm
 
 int executeFFmpegCommand(int64_t handle, const char *command,
                          void (*progressCallBack)(int64_t, int, float)) {
-    return executeFFmpegCommand4CorrectionTimeMultiple(handle, command, progressCallBack, 1);
+    return executeFFmpegCommand4TotalTime(handle, command, progressCallBack, -1);
 }
 
 int cancelExecuteFFmpegCommand() {

@@ -16,10 +16,15 @@ public class FFmpegCMDUtil {
      * Adding a thread lock at the native to allow only single-threaded execution
      */
     public static int executeFFmpegCommand(String command, OnActionListener onActionListener) {
-        return executeFFmpegCommand(command, onActionListener, 1);
+        return executeFFmpegCommand(command, onActionListener, -1);
     }
 
-    public static native int executeFFmpegCommand(String command, OnActionListener onActionListener, float correctionTimeMultiple);
+    /**
+     * @param totalTime The total time is used to correct the inaccurate time caused by the change of speed
+     */
+    public static native int executeFFmpegCommand(String command, OnActionListener onActionListener, long totalTime);
+
+    public static native long getMediaDuration(String mediaPath);
 
     /**
      * This method and the executeFFmpegCommand method must be called in separate threads.

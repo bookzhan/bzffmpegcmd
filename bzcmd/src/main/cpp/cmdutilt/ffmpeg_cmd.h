@@ -13,11 +13,12 @@ extern "C" {
 
 //小于0失败,>0成功
 int
-executeFFmpegCommand(int64_t handle, const char *, void (*progressCallBack)(int64_t, int, float));
+executeFFmpegCommand(int64_t handle, const char * command, void (*progressCallBack)(int64_t, int, float));
 
 int
-executeFFmpegCommand4CorrectionTimeMultiple(int64_t handle, const char *, void (*progressCallBack)(int64_t, int, float),
-                                            float correctionTimeMultiple);
+executeFFmpegCommand4TotalTime(int64_t handle, const char * command,
+                               void (*progressCallBack)(int64_t, int, float),
+                               int64_t totalTime);
 
 int cancelExecuteFFmpegCommand();
 
