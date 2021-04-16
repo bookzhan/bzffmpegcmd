@@ -2,8 +2,8 @@
 
 #### 如何使用:
 
-1. 在allprojects下面添加: maven { url 'https://dl.bintray.com/bookzhan/bzlib' }
-2. implementation 'com.luoye.bzlib:bzffmpegcmd:1.0.6'
+1. 在allprojects下面添加: mavenCentral()
+2. implementation 'io.github.bookzhan:bzffmpegcmd:1.0.9@aar'
 3. FFmpegCMDUtil.executeFFmpegCommand(String command, OnActionListener onActionListener)
 
 
@@ -16,7 +16,7 @@ English documentation：
 
 #### How to use:
 
-1. Add below allprojects:maven { url 'https://dl.bintray.com/bookzhan/bzlib' }
-2. implementation 'com.luoye.bzlib:bzffmpegcmd:1.0.6'
+1. Add below allprojects:  mavenCentral()
+2. implementation 'io.github.bookzhan:bzffmpegcmd:1.0.9@aar'
 3. FFmpegCMDUtil.executeFFmpegCommand(String command, OnActionListener onActionListener)
 

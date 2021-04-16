@@ -1,17 +1,5 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.github.panpf.bintray-publish'
 
-publish {
-    userOrg = 'bookzhan'
-    groupId = 'com.luoye.bzlib'
-    artifactId = 'bzffmpegcmd'
-    publishVersion = '1.0.9'
-    uploadName = 'bzffmpegcmd'
-    repoName = 'bzlib'
-    desc = 'bzffmpegcmd'
-    website = 'https://github.com/bookzhan/bookzhan.github.io'
-    licences = ['Apache-2.0']
-}
 android {
     compileSdkVersion 27
 
@@ -43,6 +31,37 @@ android {
         cmake {
             path "CMakeLists.txt"
         }
+    }
+}
+
+ext {
+    publish_group_id = 'io.github.bookzhan'
+    publish_artifact_id = "bzffmpegcmd"
+    publish_version = '1.0.9'
+    publish_description = 'bzffmpegcmdlib'
+
+    developer_id = 'guaishou'
+    developer_name = 'bookzhan'
+    developer_email = 'bookzhan@qq.com'
+
+    github_name = 'bzffmpegcmd'
+    github_project_name = 'bzffmpegcmd'
+    github_project_url = 'https://github.com/bookzhan/bzffmpegcmd'
+}
+File secretPropsFile = project.rootProject.file('local.properties')
+if (secretPropsFile.exists()) {
+    Properties p = new Properties()
+    p.load(new FileInputStream(secretPropsFile))
+    if(p.containsKey("signing.keyId")&&p.containsKey("signing.password")&&p.containsKey("signing.secretKeyRingFile")
+            &&p.containsKey("ossrhUsername")&&p.containsKey("ossrhPassword")){
+        apply from: 'https://raw.githubusercontent.com/bookzhan/maven-publish-gradle/master/publish.gradle'
+        println("Configuration information detected")
+        task uploadToMavenCentral(group: 'publishing') {
+            dependsOn(assemble)
+            dependsOn(publishReleasePublicationToMavencentralRepository)
+        }
+    }else {
+        println("Please configure the signature and account information in the local.properties file")
     }
 }
 
