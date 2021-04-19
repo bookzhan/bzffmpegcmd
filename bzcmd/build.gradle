@@ -37,7 +37,7 @@ android {
 ext {
     publish_group_id = 'io.github.bookzhan'
     publish_artifact_id = "bzffmpegcmd"
-    publish_version = '1.0.9'
+    publish_version = '1.0.10'
     publish_description = 'bzffmpegcmdlib'
 
     developer_id = 'guaishou'
