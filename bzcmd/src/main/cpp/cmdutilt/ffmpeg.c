@@ -4737,6 +4737,8 @@ static int transcode(int64_t callBackHandle, void (*progressCallBack)(int64_t, i
                                        avStream->time_base.den;
                 if (tempDuration > maxDuration) {
                     maxDuration = tempDuration;
+                } else {
+                    maxDuration = ifile->ctx->duration / 1000;
                 }
             }
         }
