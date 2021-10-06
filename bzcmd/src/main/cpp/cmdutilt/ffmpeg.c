@@ -4760,6 +4760,10 @@ static int transcode(int64_t callBackHandle, void (*progressCallBack)(int64_t, i
 #endif
 
     while (!received_sigterm) {
+        if (request_cancel_exe_ffmpeg_cmd) {
+            av_log(NULL, AV_LOG_WARNING, "request_cancel_exe_ffmpeg_cmd\n");
+            break;
+        }
         int64_t cur_time = av_gettime_relative();
 
         /* if 'q' pressed, exits */
@@ -4797,7 +4801,6 @@ static int transcode(int64_t callBackHandle, void (*progressCallBack)(int64_t, i
         }
     }
     flush_encoders();
-
     term_exit();
 
     /* write the trailer if needed and close file */
@@ -4924,6 +4927,7 @@ int exe_ffmpeg_cmd(int argc, char **argv,
     int i, ret;
     int64_t ti;
 
+    request_cancel_exe_ffmpeg_cmd = 0;
     init_dynload();
 
     register_exit(ffmpeg_cleanup);
