@@ -2,7 +2,7 @@
 
 #### 如何使用:
 
-1. 在allprojects下面添加:  maven { url "https://www.bzblog.online/nexus/repository/maven-releases/" }
+1. 在allprojects下面添加:  maven { url "https://www.raoyunsoft.com/nexus/repository/maven-releases/" }
 2. implementation 'com.guaishou.bzlib:bzffmpegcmd:1.0.12@aar'
 3. FFmpegCMDUtil.executeFFmpegCommand(String command, OnActionListener onActionListener)
 
@@ -16,7 +16,7 @@ English documentation：
 
 #### How to use:
 
-1. Add below allprojects:  maven { url "https://www.bzblog.online/nexus/repository/maven-releases/" }
+1. Add below allprojects:  maven { url "https://www.raoyunsoft.com/nexus/repository/maven-releases/" }
 2. implementation 'com.guaishou.bzlib:bzffmpegcmd:1.0.12@aar'
 3. FFmpegCMDUtil.executeFFmpegCommand(String command, OnActionListener onActionListener)
 
