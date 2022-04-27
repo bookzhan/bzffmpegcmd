@@ -576,6 +576,17 @@ typedef struct OutputStream {
 
     /* frame encode sum of squared error values */
     int64_t error[4];
+
+    int64_t callBackHandle;
+
+    void (*progressCallBack)(int64_t, int, float);
+
+    int hasVideoStream;
+
+    //输出时间,如果涉及到拼接,以及seek那么这个时间是不准确的
+    int64_t duration;
+
+    int64_t writePacketCount;
 } OutputStream;
 
 typedef struct OutputFile {

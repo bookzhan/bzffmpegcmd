@@ -772,7 +772,7 @@ static const AVCodec *choose_decoder(OptionsContext *o, AVFormatContext *s, AVSt
 
 /* Add all the streams from the given input file to the global
  * list of input streams. */
-static void add_input_streams(OptionsContext *o, AVFormatContext *ic) {
+static int add_input_streams(OptionsContext *o, AVFormatContext *ic) {
     int i, ret;
 
     for (i = 0; i < ic->nb_streams; i++) {
@@ -789,8 +789,7 @@ static void add_input_streams(OptionsContext *o, AVFormatContext *ic) {
         const AVOption *discard_opt = av_opt_find(&cc, "skip_frame", NULL, 0, 0);
 
         if (!ist) {
-            exit_program(1);
-            return;
+            return exit_program(1);
         }
 
         GROW_ARRAY(input_streams, nb_input_streams);
@@ -838,8 +837,7 @@ static void add_input_streams(OptionsContext *o, AVFormatContext *ic) {
             av_opt_eval_int(&cc, discard_opt, discard_str, &ist->user_set_discard) < 0) {
             av_log(NULL, AV_LOG_ERROR, "Error parsing discard %s.\n",
                    discard_str);
-            exit_program(1);
-            return;
+            return exit_program(1);
         }
 
         ist->filter_in_rescale_delta_last = AV_NOPTS_VALUE;
@@ -847,15 +845,14 @@ static void add_input_streams(OptionsContext *o, AVFormatContext *ic) {
         ist->dec_ctx = avcodec_alloc_context3(ist->dec);
         if (!ist->dec_ctx) {
             av_log(NULL, AV_LOG_ERROR, "Error allocating the decoder context.\n");
-            exit_program(1);
-            return;
+            return  exit_program(1);
         }
 
         ret = avcodec_parameters_to_context(ist->dec_ctx, par);
         if (ret < 0) {
             av_log(NULL, AV_LOG_ERROR, "Error initializing the decoder context.\n");
-            exit_program(1);
-            return;
+            return   exit_program(1);
+
         }
 
         if (o->bitexact)
@@ -874,8 +871,7 @@ static void add_input_streams(OptionsContext *o, AVFormatContext *ic) {
                                                      framerate) < 0) {
                     av_log(NULL, AV_LOG_ERROR, "Error parsing framerate %s.\n",
                            framerate);
-                    exit_program(1);
-                    return;
+                    return   exit_program(1);
                 }
 
                 ist->top_field_first = -1;
@@ -938,8 +934,8 @@ static void add_input_streams(OptionsContext *o, AVFormatContext *ic) {
                                 av_log(NULL, AV_LOG_FATAL, "%s ",
                                        av_hwdevice_get_type_name(type));
                             av_log(NULL, AV_LOG_FATAL, "\n");
-                            exit_program(1);
-                            return;
+                            return   exit_program(1);
+
                         }
                     }
                 }
@@ -948,8 +944,7 @@ static void add_input_streams(OptionsContext *o, AVFormatContext *ic) {
                 if (hwaccel_device) {
                     ist->hwaccel_device = av_strdup(hwaccel_device);
                     if (!ist->hwaccel_device) {
-                        exit_program(1);
-                        return;
+                        return   exit_program(1);
                     }
                 }
 
@@ -989,6 +984,7 @@ static void add_input_streams(OptionsContext *o, AVFormatContext *ic) {
             exit_program(1);
         }
     }
+    return 0;
 }
 
 static void assert_file_overwrite(const char *filename) {

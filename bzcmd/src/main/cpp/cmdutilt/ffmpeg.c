@@ -62,7 +62,7 @@
 #include "libavutil/imgutils.h"
 #include "libavutil/timestamp.h"
 #include "libavutil/bprint.h"
-#include "libavutil/time.h"
+#include "libavutil/ffmpeg_time.h"
 #include "libavutil/thread.h"
 #include "libavutil/threadmessage.h"
 #include "libavcodec/mathops.h"
@@ -4833,8 +4833,9 @@ static int transcode_step(void) {
 /*
  * The following code is the main loop of the file converter
  */
-static int transcode(void) {
-    int ret, i;
+static int transcode(int64_t callBackHandle, void (*progressCallBack)(int64_t, int, float),
+                     int64_t totalTime) {
+    int ret, i, w;
     AVFormatContext *os;
     OutputStream *ost;
     InputStream *ist;
@@ -5117,7 +5118,7 @@ int exe_ffmpeg_cmd(int argc, char **argv,
     }
 
     current_time = ti = get_benchmark_time_stamps();
-    if (transcode() < 0)
+    if (transcode(handle, progressCallBack, totalTime) < 0)
         return exit_program(1);
     if (do_benchmark) {
         int64_t utime, stime, rtime;
