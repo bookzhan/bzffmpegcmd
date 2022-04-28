@@ -16,9 +16,6 @@ int executeFFmpegCommand4TotalTime(int64_t handle, const char * command,
         return -1;
     }
     if (!hasRegistered) {
-        av_register_all();
-        avcodec_register_all();
-        avfilter_register_all();
         avformat_network_init();
         hasRegistered = true;
     }

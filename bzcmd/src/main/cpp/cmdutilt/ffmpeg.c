@@ -342,7 +342,6 @@ static void term_exit_sigsafe(void) {
 }
 
 void term_exit(void) {
-    av_log(NULL, AV_LOG_QUIET, "%s", "term_exit");
     term_exit_sigsafe();
 }
 
@@ -892,7 +891,24 @@ static void write_packet(OutputFile *of, AVPacket *pkt, OutputStream *ost, int u
                pkt->size
         );
     }
-
+    //回调处理
+    enum AVMediaType mediaType;
+    if (ost->hasVideoStream) {
+        mediaType = AVMEDIA_TYPE_VIDEO;
+    } else {
+        mediaType = AVMEDIA_TYPE_AUDIO;
+    }
+    if (NULL != ost->st && NULL != pkt && pkt->dts > 0 && ost->duration > 0 &&
+        NULL != ost->progressCallBack && mediaType == ost->st->codecpar->codec_type) {
+        if (ost->writePacketCount % 2 == 0) {
+            int64_t temp = pkt->dts * 1000 * ost->st->time_base.num /
+                           ost->st->time_base.den;
+            float progress = temp * 1.0f / ost->duration;
+            ost->progressCallBack(ost->callBackHandle, 0, progress);
+        }
+        ost->writePacketCount++;
+    }
+    //回调处理结束
     ret = av_interleaved_write_frame(s, pkt);
     if (ret < 0) {
         print_error("av_interleaved_write_frame()", ret);
@@ -5090,7 +5106,6 @@ int exe_ffmpeg_cmd(int argc, char **argv,
 #if CONFIG_AVDEVICE
     avdevice_register_all();
 #endif
-    avformat_network_init();
 
     show_banner(argc, argv, options);
 
