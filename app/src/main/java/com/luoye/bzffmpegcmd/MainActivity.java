@@ -15,12 +15,6 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
-    // Used to load the 'native-lib' library on application startup.
-    static {
-        System.loadLibrary("bzffmpeg");
-        System.loadLibrary("bzffmpegcmd");
-    }
-
     private static final String TAG = "bz_MainActivity";
     private TextView tv_info;
 
