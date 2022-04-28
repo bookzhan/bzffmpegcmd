@@ -130,8 +130,6 @@ void register_exit(void (*cb)(int ret)) {
 int exit_program(int ret) {
     if (program_exit)
         program_exit(ret);
-
-    exit(ret);
     return -1;
 }
 
@@ -1068,7 +1066,6 @@ void print_error(const char *filename, int err) {
 
     if (av_strerror(err, errbuf, sizeof(errbuf)) < 0)
         errbuf_ptr = strerror(AVUNERROR(err));
-    av_log(NULL, AV_LOG_ERROR, "%s: %s\n", filename, errbuf_ptr);
 }
 
 static int warned_cfg = 0;
