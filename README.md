@@ -17,6 +17,6 @@ English documentation：
 #### How to use:
 
 1. Add below allprojects:  maven { url "https://www.raoyunsoft.com/nexus/repository/maven-releases/" }
-2. implementation 'com.guaishou.bzlib:bzffmpegcmd:1.0.12@aar'
+2. implementation 'com.guaishou.bzlib:bzffmpegcmd:1.0.13@aar'
 3. FFmpegCMDUtil.executeFFmpegCommand(String command, OnActionListener onActionListener)
 
