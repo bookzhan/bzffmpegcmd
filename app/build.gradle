@@ -4,7 +4,7 @@ android {
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.luoye.bzffmpeg"
-        minSdkVersion 15
+        minSdkVersion 24
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
@@ -26,4 +26,5 @@ dependencies {
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation project(path: ':bzcmd')
     testImplementation 'junit:junit:4.12'
+    implementation 'com.arthenica:mobile-ffmpeg-full:4.4'
 }
