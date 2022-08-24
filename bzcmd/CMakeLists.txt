@@ -21,6 +21,8 @@ add_library( # Sets the name of the library.
         src/main/cpp/cmdutilt/ffmpeg_opt.c;
         src/main/cpp/cmdutilt/ffmpeg_cmd.c;
         src/main/cpp/cmdutilt/demo_test.c;
+        src/main/cpp/cmdutilt/opt_common.c;
+        src/main/cpp/cmdutilt/ffmpeg_mux.c;
         )
 
 

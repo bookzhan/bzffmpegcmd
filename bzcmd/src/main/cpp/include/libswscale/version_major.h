@@ -1,7 +1,4 @@
 /*
- * Filter graphs
- * copyright (c) 2007 Bobby Bingham
- *
  * This file is part of FFmpeg.
  *
  * FFmpeg is free software; you can redistribute it and/or
@@ -19,10 +16,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef AVFILTER_AVFILTERGRAPH_H
-#define AVFILTER_AVFILTERGRAPH_H
+#ifndef SWSCALE_VERSION_MAJOR_H
+#define SWSCALE_VERSION_MAJOR_H
 
-#include "avfilter.h"
-#include "libavutil/log.h"
+/**
+ * @file
+ * swscale version macros
+ */
 
-#endif /* AVFILTER_AVFILTERGRAPH_H */
+#define LIBSWSCALE_VERSION_MAJOR   6
+
+/**
+ * FF_API_* defines may be placed below to indicate public API that will be
+ * dropped at a future version bump. The defines themselves are not part of
+ * the public API and may change, break or disappear at any time.
+ */
+
+#endif /* SWSCALE_VERSION_MAJOR_H */

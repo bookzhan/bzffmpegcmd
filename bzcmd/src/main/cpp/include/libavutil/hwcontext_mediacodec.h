@@ -1,6 +1,4 @@
 /*
- * Copyright (c) 2002-2004 Michael Niedermayer <michaelni@gmx.at>
- *
  * This file is part of FFmpeg.
  *
  * FFmpeg is free software; you can redistribute it and/or
@@ -18,11 +16,21 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#ifndef AVUTIL_REVERSE_H
-#define AVUTIL_REVERSE_H
+#ifndef AVUTIL_HWCONTEXT_MEDIACODEC_H
+#define AVUTIL_HWCONTEXT_MEDIACODEC_H
 
-#include <stdint.h>
+/**
+ * MediaCodec details.
+ *
+ * Allocated as AVHWDeviceContext.hwctx
+ */
+typedef struct AVMediaCodecDeviceContext {
+    /**
+     * android/view/Surface handle, to be filled by the user.
+     *
+     * This is the default surface used by decoders on this device.
+     */
+    void *surface;
+} AVMediaCodecDeviceContext;
 
-extern const uint8_t ff_reverse[256];
-
-#endif /* AVUTIL_REVERSE_H */
+#endif /* AVUTIL_HWCONTEXT_MEDIACODEC_H */

@@ -104,9 +104,6 @@ Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_getMediaDuration(JNIEnv *env, jclass 
         return -1;
     }
     if (!hasRegistered) {
-        av_register_all();
-        avcodec_register_all();
-        avfilter_register_all();
         avformat_network_init();
         hasRegistered = true;
     }
