@@ -4009,8 +4009,9 @@ static int transcode_step(void) {
 /*
  * The following code is the main loop of the file converter
  */
-static int transcode(void) {
-    int ret, i;
+static int transcode(int64_t callBackHandle, void (*progressCallBack)(int64_t, int, float),
+                     int64_t totalTime) {
+    int ret, i, w;
     InputStream *ist;
     int64_t timer_start;
     int64_t total_packets_written = 0;
@@ -4022,10 +4023,57 @@ static int transcode(void) {
     if (stdin_interaction) {
         av_log(NULL, AV_LOG_INFO, "Press [q] to stop, [?] for help\n");
     }
+    //初始化自定义参数
+    int hasVideoStream = 0;
+    for (i = 0; i < nb_output_files; i++) {
+        OutputStream *outputStream = *output_files[i]->streams;
+        if (NULL == outputStream) {
+            continue;
+        }
+        outputStream->callBackHandle = callBackHandle;
+        outputStream->progressCallBack = progressCallBack;
+        if (NULL != outputStream->st &&
+            outputStream->st->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+            hasVideoStream = 1;
+        }
+    }
+    int64_t maxDuration = 0;
+    for (i = 0; i < nb_input_files; i++) {
+        InputFile *ifile = input_files[i];
+        if (NULL != ifile->ctx) {
+            for (w = 0; w < ifile->ctx->nb_streams; ++w) {
+                AVStream *avStream = ifile->ctx->streams[w];
+                int64_t tempDuration = avStream->duration * 1000 * avStream->time_base.num /
+                                       avStream->time_base.den;
+                if (tempDuration > maxDuration) {
+                    maxDuration = tempDuration;
+                } else {
+                    maxDuration = ifile->ctx->duration / 1000;
+                }
+            }
+        }
+    }
+    if (totalTime > 0) {
+        maxDuration = totalTime;
+    }
+    for (i = 0; i < nb_output_files; i++) {
+        OutputStream *outputStream = *output_files[i]->streams;
+        if (NULL == outputStream) {
+            continue;
+        }
+        outputStream->hasVideoStream = hasVideoStream;
+        outputStream->writePacketCount = 0;
+        outputStream->duration = maxDuration;
+    }
+    //初始化自定义参数 结束
 
     timer_start = av_gettime_relative();
 
     while (!received_sigterm) {
+        if (request_cancel_exe_ffmpeg_cmd) {
+            av_log(NULL, AV_LOG_WARNING, "request_cancel_exe_ffmpeg_cmd\n");
+            break;
+        }
         int64_t cur_time = av_gettime_relative();
 
         /* if 'q' pressed, exits */
@@ -4151,10 +4199,10 @@ int exe_ffmpeg_cmd(int argc, char **argv,
     av_log_set_flags(AV_LOG_SKIP_REPEATED);
     parse_loglevel(argc, argv, options);
 
-#if CONFIG_AVDEVICE
-    avdevice_register_all();
-#endif
-    avformat_network_init();
+//#if CONFIG_AVDEVICE
+//    avdevice_register_all();
+//#endif
+//    avformat_network_init();
 
     show_banner(argc, argv, options);
 
@@ -4176,7 +4224,7 @@ int exe_ffmpeg_cmd(int argc, char **argv,
     }
 
     current_time = ti = get_benchmark_time_stamps();
-    if (transcode() < 0)
+    if (transcode(handle, progressCallBack, totalTime) < 0)
         return exit_program(1);
     if (do_benchmark) {
         int64_t utime, stime, rtime;

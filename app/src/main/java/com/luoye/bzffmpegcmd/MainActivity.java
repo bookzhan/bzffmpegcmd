@@ -31,11 +31,10 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 long startTime = System.currentTimeMillis();
                 String cmd = "ffmpeg -y -i /sdcard/bzmedia/testvideo.mp4 -b:v 806262 /sdcard/bzmedia/out_" + System.nanoTime() + ".mp4";
-//                String cmd = "ffmpeg -y -i /sdcard/bzmedia/testvideo.mp4 /sdcard/bzmedia/out_" + System.nanoTime() + ".mp4";
-                ////变速之后回调视频时长变了,进度就不准确了,需要传一个总时间去纠正进度
-//                String cmd = "ffmpeg -y -i \"/storage/emulated/0/bzmedia/input_1.m4a\" -af atempo=10 \"/storage/emulated/0/bzmedia/audio_1617190120996.m4a\"";
+                //变速之后回调视频时长变了,进度就不准确了,需要传一个总时间去纠正进度
+//                String cmd = "ffmpeg -y -i /storage/emulated/0/bzmedia/input_1.m4a -af atempo=10 /storage/emulated/0/bzmedia/audio_1617190120996.m4a";
 
-//                String cmd = "ffmpeg -y -i /sdcard/bzmedia/VID_029.mp4 -i /sdcard/bzmedia/VID_812.mp4 -filter_complex amix=inputs=2 -vn /storage/emulated/0/bzmedia/mix_" + System.nanoTime() + ".m4a";
+//                String cmd = "ffmpeg -y -i /sdcard/bzmedia/testvideo2.mp4 -i /sdcard/bzmedia/testvideo3.mp4 -filter_complex amix=inputs=2 -vn /storage/emulated/0/bzmedia/mix_" + System.nanoTime() + ".m4a";
 //
 //                String cmd = "ffmpeg -y -i %s -i %s -c:v copy -filter_complex [0:a]aformat=fltp:44100:stereo,volume=%.2f,apad[0a];[1]aformat=fltp:44100:stereo,volume=%.2f[1a];[0a][1a]amerge[a] -map 0:v -map [a] -ac 2 %s";
 //                cmd = String.format(cmd, "/sdcard/Filter/temp_6.mp4", "/sdcard/Filter/input_bg.mp3", 0.5f, 1.0f, "/sdcard/Filter/output.mp4");

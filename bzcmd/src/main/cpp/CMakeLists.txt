@@ -2,7 +2,7 @@
 # library. You should either keep the default value or only pass a
 # value of 3.4.0 or lower.
 
-cmake_minimum_required(VERSION 3.4.1)
+cmake_minimum_required(VERSION 3.22.1)
 
 project("bzffmpegcmd")
 
@@ -29,8 +29,9 @@ add_library( # Sets the name of the library.
         cmdutilt/thread_queue.c;
         cmdutilt/ffmpeg.c;
 
+        cmdutilt/JvmManager.cpp;
         cmdutilt/ffmpeg_cmd.c;
-        cmdutilt/demo_test.c;
+        cmdutilt/demo_test.cpp;
         )
 
 

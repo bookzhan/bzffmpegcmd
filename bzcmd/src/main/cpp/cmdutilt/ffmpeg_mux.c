@@ -147,6 +147,24 @@ static int write_packet(Muxer *mux, OutputStream *ost, AVPacket *pkt)
     if (ms->stats.io)
         enc_stats_write(ost, &ms->stats, NULL, pkt, frame_num);
 
+    //回调处理
+    enum AVMediaType mediaType;
+    if (ost->hasVideoStream) {
+        mediaType = AVMEDIA_TYPE_VIDEO;
+    } else {
+        mediaType = AVMEDIA_TYPE_AUDIO;
+    }
+    if (NULL != ost->st && NULL != pkt && pkt->dts > 0 && ost->duration > 0 &&
+        NULL != ost->progressCallBack && mediaType == ost->st->codecpar->codec_type) {
+        if (ost->writePacketCount % 2 == 0) {
+            int64_t temp = pkt->dts * 1000 * ost->st->time_base.num /
+                           ost->st->time_base.den;
+            float progress = temp * 1.0f / ost->duration;
+            ost->progressCallBack(ost->callBackHandle, 0, progress);
+        }
+        ost->writePacketCount++;
+    }
+    //回调处理结束
     ret = av_interleaved_write_frame(s, pkt);
     if (ret < 0) {
         print_error("av_interleaved_write_frame()", ret);

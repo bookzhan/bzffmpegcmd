@@ -7,10 +7,16 @@
 #include <jni.h>
 #include "ffmpeg_cmd.h"
 #include <android/log.h>
+
+#include <stdbool.h>
+#include "JvmManager.h"
+
+extern "C" {
+#include "ffmpeg_jni.h"
 #include <libavutil/log.h>
 #include <libavformat/avformat.h>
 #include <libavfilter/avfilter.h>
-#include <stdbool.h>
+}
 
 extern int hasRegistered;
 typedef struct CallBackInfo {
@@ -41,48 +47,53 @@ void log_call_back(void *ptr, int level, const char *fmt, va_list vl) {
 
 void progressCallBack(int64_t handle, int what, float progress) {
     if (handle != 0) {
-        struct CallBackInfo *onActionListener = (struct CallBackInfo *) (handle);
+        CallBackInfo *onActionListener = (struct CallBackInfo *) (handle);
         JNIEnv *env = onActionListener->env;
-        (*env)->CallVoidMethod(env, onActionListener->obj, onActionListener->methodID,
-                               progress);
+        bool needDetach = JvmManager::getJNIEnv(&env);
+        (*env).CallVoidMethod(onActionListener->obj, onActionListener->methodID,
+                              progress);
+        if (needDetach) {
+            JvmManager::getJavaVM()->DetachCurrentThread();
+        }
     }
 }
 
-JNIEXPORT jint JNICALL
+extern "C" JNIEXPORT jint JNICALL
 Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_executeFFmpegCommand(JNIEnv *env,
                                                                 jclass type,
                                                                 jstring command_,
                                                                 jobject actionCallBack,
                                                                 jlong totalTime) {
     int ret = 0;
-    const char *command = (*env)->GetStringUTFChars(env, command_, 0);
+    const char *command = (*env).GetStringUTFChars(command_, 0);
     if (NULL != actionCallBack) {
-        jclass actionClass = (*env)->GetObjectClass(env, actionCallBack);
-        jmethodID progressMID = (*env)->GetMethodID(env, actionClass, "progress", "(F)V");
-        jmethodID failMID = (*env)->GetMethodID(env, actionClass, "fail", "()V");
-        jmethodID successMID = (*env)->GetMethodID(env, actionClass, "success", "()V");
+        jclass actionClass = (*env).GetObjectClass(actionCallBack);
+        jmethodID progressMID = (*env).GetMethodID(actionClass, "progress", "(F)V");
+        jmethodID failMID = (*env).GetMethodID(actionClass, "fail", "()V");
+        jmethodID successMID = (*env).GetMethodID(actionClass, "success", "()V");
 
 
         CallBackInfo onActionListener;
         onActionListener.env = env;
-        onActionListener.obj = actionCallBack;
+        onActionListener.obj = env->NewGlobalRef(actionCallBack);
         onActionListener.methodID = progressMID;
         ret = executeFFmpegCommand4TotalTime((int64_t) (&onActionListener), command,
                                              progressCallBack, totalTime);
         if (ret < 0) {
-            (*env)->CallVoidMethod(env, actionCallBack, failMID);
+            (*env).CallVoidMethod(actionCallBack, failMID);
         } else {
-            (*env)->CallVoidMethod(env, actionCallBack, successMID);
+            (*env).CallVoidMethod(actionCallBack, successMID);
         }
-        (*env)->DeleteLocalRef(env, actionClass);
+        (*env).DeleteGlobalRef(onActionListener.obj);
+        (*env).DeleteLocalRef(actionClass);
     } else {
         ret = executeFFmpegCommand(0, command, NULL);
     }
-    (*env)->ReleaseStringUTFChars(env, command_, command);
+    (*env).ReleaseStringUTFChars(command_, command);
     return ret;
 }
 
-JNIEXPORT jint JNICALL
+extern "C" JNIEXPORT jint JNICALL
 Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_showLog(JNIEnv *env, jclass clazz, jboolean showLog) {
     if (showLog) {
         av_log_set_callback(log_call_back);
@@ -92,12 +103,12 @@ Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_showLog(JNIEnv *env, jclass clazz, jb
     return 0;
 }
 
-JNIEXPORT jint JNICALL
+extern "C" JNIEXPORT jint JNICALL
 Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_cancelExecuteFFmpegCommand(JNIEnv *env, jclass clazz) {
     return cancelExecuteFFmpegCommand();
 }
 
-JNIEXPORT jlong JNICALL
+extern "C" JNIEXPORT jlong JNICALL
 Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_getMediaDuration(JNIEnv *env, jclass clazz,
                                                             jstring media_path) {
     if (NULL == media_path) {
@@ -107,7 +118,7 @@ Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_getMediaDuration(JNIEnv *env, jclass 
         avformat_network_init();
         hasRegistered = true;
     }
-    const char *mediaPath = (*env)->GetStringUTFChars(env, media_path, 0);
+    const char *mediaPath = (*env).GetStringUTFChars(media_path, 0);
     AVFormatContext *in_fmt_ctx = NULL;
     int ret = 0;
     if ((ret = avformat_open_input(&in_fmt_ctx, mediaPath, NULL, NULL)) < 0) {
@@ -130,6 +141,6 @@ Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_getMediaDuration(JNIEnv *env, jclass 
     if (NULL != in_fmt_ctx)
         avformat_close_input(&in_fmt_ctx);
 
-    (*env)->ReleaseStringUTFChars(env, media_path, mediaPath);
+    (*env).ReleaseStringUTFChars(media_path, mediaPath);
     return videoDuration;
 }
