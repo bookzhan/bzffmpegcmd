@@ -62,8 +62,7 @@ int executeFFmpegCommand4TotalTime(int64_t handle, const char * command,
 //    }
     //手动告诉它结束了,防止出现意外
     argv[index] = 0;
-//    int ret = exe_ffmpeg_cmd(index, argv, handle, progressCallBack, totalTime);
-    int ret = 0;
+    int ret = exe_ffmpeg_cmd(index, argv, handle, progressCallBack, totalTime);
     for (int i = 0; i < index; ++i) {
         free(argv[i]);
     }
@@ -77,7 +76,6 @@ int executeFFmpegCommand(int64_t handle, const char *command,
 }
 
 int cancelExecuteFFmpegCommand() {
-//    return cancel_exe_ffmpeg_cmd();
-    return 0;
+    return cancel_exe_ffmpeg_cmd();
 }
 

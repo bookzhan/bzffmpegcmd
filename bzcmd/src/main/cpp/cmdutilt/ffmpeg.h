@@ -902,4 +902,9 @@ extern const char * const opt_name_codec_tags[];
 extern const char * const opt_name_frame_rates[];
 extern const char * const opt_name_top_field_first[];
 
+int exe_ffmpeg_cmd(int argc, char **argv,
+                   int64_t handle, void (*progressCallBack)(int64_t, int, float),int64_t totalTime);
+
+int cancel_exe_ffmpeg_cmd();
+
 #endif /* FFTOOLS_FFMPEG_H */

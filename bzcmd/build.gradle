@@ -34,7 +34,7 @@ android {
             version '3.22.1'
         }
     }
-    ndkVersion '19.2.5345600'
+    ndkVersion '25.2.9519653'
     lint {
         abortOnError false
     }

@@ -68,7 +68,7 @@ void report_and_exit(int ret) av_noreturn;
 /**
  * Wraps exit with a program-specific cleanup routine.
  */
-void exit_program(int ret) av_noreturn;
+int exit_program(int ret);
 
 /**
  * Initialize dynamic library loading
