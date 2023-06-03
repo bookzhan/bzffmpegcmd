@@ -16,9 +16,6 @@ android {
             cmake {
                 cppFlags "-std=c++11"
             }
-            ndk {
-                abiFilters 'armeabi-v7a','arm64-v8a'
-            }
         }
     }
 
@@ -50,7 +47,7 @@ ext {
 
     POM_GROUP_ID = 'com.guaishou.bzlib'
     POM_ATRIFACT_ID = 'bzffmpegcmd'
-    POM_VERSION = '1.0.17'
+    POM_VERSION = '1.0.18'
 }
 if (System.getenv('NEXUS_USER')) {
     NEXUS_USER = System.getenv('NEXUS_USER')

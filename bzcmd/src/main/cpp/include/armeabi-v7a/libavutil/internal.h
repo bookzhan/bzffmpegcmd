@@ -40,7 +40,7 @@
 #include <stdio.h>
 #include "config.h"
 #include "attributes.h"
-#include "timer.h"
+#include "ffmpeg_time.h"
 #include "macros.h"
 #include "pixfmt.h"
 
