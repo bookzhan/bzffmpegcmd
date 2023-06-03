@@ -6,6 +6,8 @@
 #define FFMPEGCMD_FFMPEG_CMD_H
 //#include <cstdint>
 //小于0失败,>0成功
+#include <stdint.h>
+
 #ifdef __cplusplus
 
 extern "C" {

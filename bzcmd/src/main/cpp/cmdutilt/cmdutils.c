@@ -30,7 +30,7 @@
    references to libraries that are not being built. */
 
 #include "config.h"
-#include "compat/va_copy.h"
+#include "va_copy.h"
 #include "libavformat/avformat.h"
 #include "libswscale/swscale.h"
 #include "libswscale/version.h"
@@ -90,10 +90,18 @@ void register_exit(void (*cb)(int ret))
     program_exit = cb;
 }
 
-int exit_program(int ret) {
+void report_and_exit(int ret)
+{
+    av_log(NULL, AV_LOG_FATAL, "%s\n", av_err2str(ret));
+    exit_program(AVUNERROR(ret));
+}
+
+void exit_program(int ret)
+{
     if (program_exit)
         program_exit(ret);
-    return -1;
+
+    exit(ret);
 }
 
 double parse_number_or_die(const char *context, const char *numstr, int type,
@@ -296,7 +304,7 @@ static int write_option(void *optctx, const OptionDef *po, const char *opt,
         }
     }
     if (po->flags & OPT_EXIT)
-        return exit_program(0);
+        exit_program(0);
 
     return 0;
 }
@@ -361,10 +369,8 @@ void parse_options(void *optctx, int argc, char **argv, const OptionDef *options
             }
             opt++;
 
-            if ((ret = parse_option(optctx, opt, argv[optindex], options)) < 0){
+            if ((ret = parse_option(optctx, opt, argv[optindex], options)) < 0)
                 exit_program(1);
-                return;
-            }
             optindex += ret;
         } else {
             if (parse_arg_function)
@@ -649,10 +655,8 @@ static void init_parse_context(OptionParseContext *octx,
 
     octx->nb_groups = nb_groups;
     octx->groups    = av_calloc(octx->nb_groups, sizeof(*octx->groups));
-    if (!octx->groups){
-        exit_program(1);
-        return;
-    }
+    if (!octx->groups)
+        report_and_exit(AVERROR(ENOMEM));
 
     for (i = 0; i < octx->nb_groups; i++)
         octx->groups[i].group_def = &groups[i];
@@ -794,12 +798,7 @@ do {                                                                           \
 
 void print_error(const char *filename, int err)
 {
-    char errbuf[128];
-    const char *errbuf_ptr = errbuf;
-
-    if (av_strerror(err, errbuf, sizeof(errbuf)) < 0)
-        errbuf_ptr = strerror(AVUNERROR(err));
-    av_log(NULL, AV_LOG_ERROR, "%s: %s\n", filename, errbuf_ptr);
+    av_log(NULL, AV_LOG_ERROR, "%s: %s\n", filename, av_err2str(err));
 }
 
 int read_yesno(void)
@@ -922,7 +921,7 @@ AVDictionary *filter_codec_opts(AVDictionary *opts, enum AVCodecID codec_id,
         break;
     }
 
-    while (t = av_dict_get(opts, "", t, AV_DICT_IGNORE_SUFFIX)) {
+    while (t = av_dict_iterate(opts, t)) {
         const AVClass *priv_class;
         char *p = strchr(t->key, ':');
 
@@ -931,9 +930,7 @@ AVDictionary *filter_codec_opts(AVDictionary *opts, enum AVCodecID codec_id,
             switch (check_stream_specifier(s, st, p + 1)) {
             case  1: *p = 0; break;
             case  0:         continue;
-            default:
-                    exit_program(1);
-                    return NULL;
+            default:         exit_program(1);
             }
 
         if (av_opt_find(&cc, t->key, NULL, flags, AV_OPT_SEARCH_FAKE_OBJ) ||
@@ -962,11 +959,8 @@ AVDictionary **setup_find_stream_info_opts(AVFormatContext *s,
     if (!s->nb_streams)
         return NULL;
     opts = av_calloc(s->nb_streams, sizeof(*opts));
-    if (!opts) {
-        av_log(NULL, AV_LOG_ERROR,
-               "Could not alloc memory for stream options.\n");
-        return NULL;
-    }
+    if (!opts)
+        report_and_exit(AVERROR(ENOMEM));
     for (i = 0; i < s->nb_streams; i++)
         opts[i] = filter_codec_opts(codec_opts, s->streams[i]->codecpar->codec_id,
                                     s, s->streams[i], NULL);
@@ -978,15 +972,11 @@ void *grow_array(void *array, int elem_size, int *size, int new_size)
     if (new_size >= INT_MAX / elem_size) {
         av_log(NULL, AV_LOG_ERROR, "Array too big.\n");
         exit_program(1);
-        return NULL;
     }
     if (*size < new_size) {
         uint8_t *tmp = av_realloc_array(array, new_size, elem_size);
-        if (!tmp) {
-            av_log(NULL, AV_LOG_ERROR, "Could not alloc buffer.\n");
-            exit_program(1);
-            return NULL;
-        }
+        if (!tmp)
+            report_and_exit(AVERROR(ENOMEM));
         memset(tmp + *size*elem_size, 0, (new_size-*size) * elem_size);
         *size = new_size;
         return tmp;
@@ -999,10 +989,8 @@ void *allocate_array_elem(void *ptr, size_t elem_size, int *nb_elems)
     void *new_elem;
 
     if (!(new_elem = av_mallocz(elem_size)) ||
-        av_dynarray_add_nofree(ptr, nb_elems, new_elem) < 0) {
-        av_log(NULL, AV_LOG_ERROR, "Could not alloc buffer.\n");
-        exit_program(1);
-    }
+        av_dynarray_add_nofree(ptr, nb_elems, new_elem) < 0)
+        report_and_exit(AVERROR(ENOMEM));
     return new_elem;
 }
 
