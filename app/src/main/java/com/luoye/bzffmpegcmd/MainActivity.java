@@ -1,17 +1,15 @@
 package com.luoye.bzffmpegcmd;
 
-import android.Manifest;
-import android.os.Build;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.bzcommon.utils.BZPermissionUtil;
+import com.luoye.bzcommonlib.BuildConfig;
 import com.luoye.bzmedia.utils.FFmpegCMDUtil;
-
-
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -22,30 +20,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        tv_info = (TextView) findViewById(R.id.tv_info);
-        requestPermission();
+        tv_info = findViewById(R.id.tv_info);
         FFmpegCMDUtil.showLog(BuildConfig.DEBUG);
-    }
-
-    private boolean requestPermission() {
-        ArrayList<String> permissionList = new ArrayList<>();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && !PermissionUtil.isPermissionGranted(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-            permissionList.add(Manifest.permission.READ_EXTERNAL_STORAGE);
-        }
-        if (!PermissionUtil.isPermissionGranted(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            permissionList.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        }
-        String[] permissionStrings = new String[permissionList.size()];
-        permissionList.toArray(permissionStrings);
-
-        if (permissionList.size() > 0) {
-            PermissionUtil.requestPermission(this, permissionStrings, PermissionUtil.CODE_REQ_PERMISSION);
-            return false;
-        } else {
-            Log.d(TAG, "Have all permissions");
-            return true;
-        }
+        BZPermissionUtil.requestCommonTestPermission(this);
     }
 
     public void start(View view) {
@@ -53,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 long startTime = System.currentTimeMillis();
-                String cmd = "ffmpeg -y -i /sdcard/bzmedia/050430-raw.mp4 -b:v 806262 /sdcard/bzmedia/out_" + System.nanoTime() + ".mp4";
+                String cmd = "ffmpeg -y -i /sdcard/bzmedia/testvideo.mp4 -b:v 806262 /sdcard/bzmedia/out_" + System.nanoTime() + ".mp4";
 //                String cmd = "ffmpeg -y -i /sdcard/bzmedia/testvideo.mp4 /sdcard/bzmedia/out_" + System.nanoTime() + ".mp4";
                 ////变速之后回调视频时长变了,进度就不准确了,需要传一个总时间去纠正进度
 //                String cmd = "ffmpeg -y -i \"/storage/emulated/0/bzmedia/input_1.m4a\" -af atempo=10 \"/storage/emulated/0/bzmedia/audio_1617190120996.m4a\"";

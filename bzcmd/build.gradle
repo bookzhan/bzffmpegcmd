@@ -1,5 +1,4 @@
 apply plugin: 'com.android.library'
-apply plugin: 'maven'
 apply plugin: 'maven-publish'
 
 android {
@@ -38,18 +37,17 @@ android {
     ndkVersion '22.1.7171670'
 }
 
-
 ext {
     NEXUS_USER = ''
     NEXUS_PASSWORD = ''
-    RELEASE_SNAPSHOT = false
+    RELEASE_SNAPSHOT = true
 
     POM_URL_SNAP = 'https://www.raoyunsoft.com/nexus/repository/maven-snapshots/'
     POM_URL = 'https://www.raoyunsoft.com/nexus/repository/maven-releases/'
 
     POM_GROUP_ID = 'com.guaishou.bzlib'
     POM_ATRIFACT_ID = 'bzffmpegcmd'
-    POM_VERSION = '1.0.16'
+    POM_VERSION = '1.0.17'
 }
 if (System.getenv('NEXUS_USER')) {
     NEXUS_USER = System.getenv('NEXUS_USER')
@@ -57,37 +55,31 @@ if (System.getenv('NEXUS_USER')) {
 if (System.getenv('NEXUS_PASSWORD')) {
     NEXUS_PASSWORD = System.getenv('NEXUS_PASSWORD')
 }
-println("NEXUS_USER=" + NEXUS_USER + " NEXUS_PASSWORD=" + NEXUS_PASSWORD)
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            if (RELEASE_SNAPSHOT) {
-                snapshotRepository(url: POM_URL_SNAP) {
-                    authentication(userName: NEXUS_USER, password: NEXUS_PASSWORD)
-                }
-                POM_VERSION += "-SNAPSHOT"
-            } else {
-                repository(url: POM_URL) {
-                    authentication(userName: NEXUS_USER, password: NEXUS_PASSWORD)
-                }
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = POM_GROUP_ID
+                artifactId = POM_ATRIFACT_ID
+                artifact androidSourcesJar
+                version = RELEASE_SNAPSHOT ? POM_VERSION + "-SNAPSHOT" : POM_VERSION
             }
-
-            pom.groupId = POM_GROUP_ID
-            pom.artifactId = POM_ATRIFACT_ID
-            pom.version = POM_VERSION
-
-            pom.project {
-                licenses {
-                    license {
-                        name 'The Apache Software License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
+        }
+        repositories {
+            maven {
+                url RELEASE_SNAPSHOT ? POM_URL_SNAP : POM_URL
+                credentials {
+                    username NEXUS_USER
+                    password NEXUS_PASSWORD
                 }
             }
         }
     }
 }
+tasks.withType(PublishToMavenRepository) { it.dependsOn lint }
+
 task androidSourcesJar(type: Jar) {
     archiveClassifier.set('sources')
     from android.sourceSets.main.java.getSrcDirs()
