@@ -588,8 +588,10 @@ static void ffmpeg_cleanup(int ret) {
     output_files = NULL;
     nb_output_files = 0;
 
-    request_cancel_exe_ffmpeg_cmd = 0;
+    filtergraphs = NULL;
+    nb_filtergraphs = 0;
 
+    request_cancel_exe_ffmpeg_cmd = 0;
     ffmpeg_exited = 1;
 }
 
