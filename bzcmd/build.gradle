@@ -40,7 +40,7 @@ android {
 ext {
     NEXUS_USER = ''
     NEXUS_PASSWORD = ''
-    RELEASE_SNAPSHOT = true
+    RELEASE_SNAPSHOT = false
 
     POM_URL_SNAP = 'https://www.raoyunsoft.com/nexus/repository/maven-snapshots/'
     POM_URL = 'https://www.raoyunsoft.com/nexus/repository/maven-releases/'
