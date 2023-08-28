@@ -40,7 +40,7 @@ void log_call_back(void *ptr, int level, const char *fmt, va_list vl) {
         } else if (level <= 24) {
             __android_log_vprint(ANDROID_LOG_WARN, TAG, fmt, vl);
         } else {
-//            __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
+            __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
         }
     }
 }
@@ -64,6 +64,10 @@ Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_executeFFmpegCommand(JNIEnv *env,
                                                                 jstring command_,
                                                                 jobject actionCallBack,
                                                                 jlong totalTime) {
+    if (!hasRegistered) {
+        avformat_network_init();
+        hasRegistered = true;
+    }
     int ret = 0;
     const char *command = (*env).GetStringUTFChars(command_, 0);
     if (NULL != actionCallBack) {
