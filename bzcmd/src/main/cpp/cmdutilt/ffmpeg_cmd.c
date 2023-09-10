@@ -5,20 +5,37 @@
 //保证同时只能一个线程执行
 static pthread_mutex_t cmdLock;
 static int cmdLockHasInit = 0;
+static const int CMD_BUFFER_SIZE = 2048;
+
 bool hasRegistered = false;
 
+
+char *append_command(const char *src_cmd, const char *add_cmd) {
+    char *buffer = malloc(CMD_BUFFER_SIZE);
+    memset(buffer, 0, CMD_BUFFER_SIZE);
+    const char *last_space = strrchr(src_cmd, ' ');
+    strncpy(buffer, src_cmd, last_space - src_cmd + 1);  // 复制最后一个空格之前的部分
+    strcpy(buffer + (last_space - src_cmd + 1), add_cmd);  // 添加选项和之后的部分
+    strcat(buffer, last_space + 1);  // 添加空格之后的内容
+    return buffer;
+}
+
 char *pre_hande_cmd(const char *src_cmd) {
-    char *final_cmd = malloc(2048);
-    memset(final_cmd, 0, 2048);
-    const char *option = "-c:v";  // 子串
+    char *final_cmd = malloc(CMD_BUFFER_SIZE);
+    memset(final_cmd, 0, CMD_BUFFER_SIZE);
+    strcpy(final_cmd, src_cmd);
     // 检测是否包含子串
-    if (strstr(src_cmd, option) == NULL) {
-        const char *last_space = strrchr(src_cmd, ' ');
-        strncpy(final_cmd, src_cmd, last_space - src_cmd + 1);  // 复制最后一个空格之前的部分
-        strcpy(final_cmd + (last_space - src_cmd + 1), "-c:v libx264 -preset ultrafast ");  // 添加选项和之后的部分
-        strcat(final_cmd, last_space + 1);  // 添加空格之后的内容
-    } else {
-        strcpy(final_cmd, src_cmd);
+    if (strstr(final_cmd, "-c:v") == NULL) {
+        char *buffer = append_command(final_cmd, "-c:v libx264 ");
+        memset(final_cmd, 0, CMD_BUFFER_SIZE);
+        strcpy(final_cmd, buffer);
+        free(buffer);
+    }
+    if (strstr(final_cmd, "libx264") != NULL && strstr(final_cmd, "-preset") == NULL) {
+        char *buffer = append_command(final_cmd, "-preset ultrafast ");
+        memset(final_cmd, 0, CMD_BUFFER_SIZE);
+        strcpy(final_cmd, buffer);
+        free(buffer);
     }
     return final_cmd;
 }
