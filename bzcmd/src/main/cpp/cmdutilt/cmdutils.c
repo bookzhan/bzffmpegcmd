@@ -50,7 +50,6 @@
 #include "cmdutils.h"
 #include "fopen_utf8.h"
 #include "opt_common.h"
-
 #ifdef _WIN32
 #include <windows.h>
 #include "compat/w32dlfcn.h"
@@ -62,18 +61,21 @@ AVDictionary *format_opts, *codec_opts;
 
 int hide_banner = 0;
 
-void uninit_opts(void) {
+void uninit_opts(void)
+{
     av_dict_free(&swr_opts);
     av_dict_free(&sws_dict);
     av_dict_free(&format_opts);
     av_dict_free(&codec_opts);
 }
 
-void log_callback_help(void *ptr, int level, const char *fmt, va_list vl) {
+void log_callback_help(void *ptr, int level, const char *fmt, va_list vl)
+{
     vfprintf(stdout, fmt, vl);
 }
 
-void init_dynload(void) {
+void init_dynload(void)
+{
 #if HAVE_SETDLLDIRECTORY && defined(_WIN32)
     /* Calling SetDllDirectory with the empty string (but not NULL) removes the
      * current working directory from the DLL search path as a security pre-caution. */
@@ -83,23 +85,30 @@ void init_dynload(void) {
 
 static void (*program_exit)(int ret);
 
-void register_exit(void (*cb)(int ret)) {
+void register_exit(void (*cb)(int ret))
+{
     program_exit = cb;
 }
 
-void report_and_exit(int ret) {
+void report_and_exit(int ret)
+{
     av_log(NULL, AV_LOG_FATAL, "%s\n", av_err2str(ret));
     exit_program(AVUNERROR(ret));
 }
 
-int exit_program(int ret) {
+void exit_program(int ret)
+{
     if (program_exit)
         program_exit(ret);
-    return ret;
+
+    av_log(NULL, AV_LOG_FATAL, "exit_program ret=%s", av_err2str(ret));
+    //0是setjmp的标记避免使用0
+    longjmp(jump_buffer, ret >= 0 ? 1 : ret);
 }
 
 double parse_number_or_die(const char *context, const char *numstr, int type,
-                           double min, double max) {
+                           double min, double max)
+{
     char *tail;
     const char *error;
     double d = av_strtod(numstr, &tail);
@@ -107,9 +116,9 @@ double parse_number_or_die(const char *context, const char *numstr, int type,
         error = "Expected number for %s but found: %s\n";
     else if (d < min || d > max)
         error = "The value for %s was %s which is not within %f - %f\n";
-    else if (type == OPT_INT64 && (int64_t) d != d)
+    else if (type == OPT_INT64 && (int64_t)d != d)
         error = "Expected int64 for %s but found %s\n";
-    else if (type == OPT_INT && (int) d != d)
+    else if (type == OPT_INT && (int)d != d)
         error = "Expected int for %s but found %s\n";
     else
         return d;
@@ -119,7 +128,8 @@ double parse_number_or_die(const char *context, const char *numstr, int type,
 }
 
 int64_t parse_time_or_die(const char *context, const char *timestr,
-                          int is_duration) {
+                          int is_duration)
+{
     int64_t us;
     if (av_parse_time(&us, timestr, is_duration) < 0) {
         av_log(NULL, AV_LOG_FATAL, "Invalid %s specification for %s: %s\n",
@@ -130,7 +140,8 @@ int64_t parse_time_or_die(const char *context, const char *timestr,
 }
 
 void show_help_options(const OptionDef *options, const char *msg, int req_flags,
-                       int rej_flags, int alt_flags) {
+                       int rej_flags, int alt_flags)
+{
     const OptionDef *po;
     int first;
 
@@ -157,7 +168,8 @@ void show_help_options(const OptionDef *options, const char *msg, int req_flags,
     printf("\n");
 }
 
-void show_help_children(const AVClass *class, int flags) {
+void show_help_children(const AVClass *class, int flags)
+{
     void *iter = NULL;
     const AVClass *child;
     if (class->option) {
@@ -169,7 +181,8 @@ void show_help_children(const AVClass *class, int flags) {
         show_help_children(child, flags);
 }
 
-static const OptionDef *find_option(const OptionDef *po, const char *name) {
+static const OptionDef *find_option(const OptionDef *po, const char *name)
+{
     while (po->name) {
         const char *end;
         if (av_strstart(name, po->name, &end) && (!*end || *end == ':'))
@@ -237,19 +250,19 @@ static void prepare_app_arguments(int *argc_ptr, char ***argv_ptr)
     *argv_ptr = win32_argv_utf8;
 }
 #else
-
-static inline void prepare_app_arguments(int *argc_ptr, char ***argv_ptr) {
+static inline void prepare_app_arguments(int *argc_ptr, char ***argv_ptr)
+{
     /* nothing to do */
 }
-
 #endif /* HAVE_COMMANDLINETOARGVW */
 
 static int write_option(void *optctx, const OptionDef *po, const char *opt,
-                        const char *arg) {
+                        const char *arg)
+{
     /* new-style options contain an offset into optctx, old-style address of
      * a global var*/
     void *dst = po->flags & (OPT_OFFSET | OPT_SPEC) ?
-                (uint8_t *) optctx + po->u.off : po->u.dst_ptr;
+                (uint8_t *)optctx + po->u.off : po->u.dst_ptr;
     int *dstcount;
 
     if (po->flags & OPT_SPEC) {
@@ -257,7 +270,7 @@ static int write_option(void *optctx, const OptionDef *po, const char *opt,
         char *p = strchr(opt, ':');
         char *str;
 
-        dstcount = (int *) (so + 1);
+        dstcount = (int *)(so + 1);
         *so = grow_array(*so, sizeof(**so), dstcount, *dstcount + 1);
         str = av_strdup(p ? p + 1 : "");
         if (!str)
@@ -272,17 +285,17 @@ static int write_option(void *optctx, const OptionDef *po, const char *opt,
         av_freep(dst);
         if (!str)
             return AVERROR(ENOMEM);
-        *(char **) dst = str;
+        *(char **)dst = str;
     } else if (po->flags & OPT_BOOL || po->flags & OPT_INT) {
-        *(int *) dst = parse_number_or_die(opt, arg, OPT_INT64, INT_MIN, INT_MAX);
+        *(int *)dst = parse_number_or_die(opt, arg, OPT_INT64, INT_MIN, INT_MAX);
     } else if (po->flags & OPT_INT64) {
-        *(int64_t *) dst = parse_number_or_die(opt, arg, OPT_INT64, INT64_MIN, INT64_MAX);
+        *(int64_t *)dst = parse_number_or_die(opt, arg, OPT_INT64, INT64_MIN, INT64_MAX);
     } else if (po->flags & OPT_TIME) {
-        *(int64_t *) dst = parse_time_or_die(opt, arg, 1);
+        *(int64_t *)dst = parse_time_or_die(opt, arg, 1);
     } else if (po->flags & OPT_FLOAT) {
-        *(float *) dst = parse_number_or_die(opt, arg, OPT_FLOAT, -INFINITY, INFINITY);
+        *(float *)dst = parse_number_or_die(opt, arg, OPT_FLOAT, -INFINITY, INFINITY);
     } else if (po->flags & OPT_DOUBLE) {
-        *(double *) dst = parse_number_or_die(opt, arg, OPT_DOUBLE, -INFINITY, INFINITY);
+        *(double *)dst = parse_number_or_die(opt, arg, OPT_DOUBLE, -INFINITY, INFINITY);
     } else if (po->u.func_arg) {
         int ret = po->u.func_arg(optctx, opt, arg);
         if (ret < 0) {
@@ -299,11 +312,12 @@ static int write_option(void *optctx, const OptionDef *po, const char *opt,
 }
 
 int parse_option(void *optctx, const char *opt, const char *arg,
-                 const OptionDef *options) {
+                 const OptionDef *options)
+{
     static const OptionDef opt_avoptions = {
-            .name       = "AVOption passthrough",
-            .flags      = HAS_ARG,
-            .u.func_arg = opt_default,
+        .name       = "AVOption passthrough",
+        .flags      = HAS_ARG,
+        .u.func_arg = opt_default,
     };
 
     const OptionDef *po;
@@ -337,7 +351,8 @@ int parse_option(void *optctx, const char *opt, const char *arg,
 }
 
 void parse_options(void *optctx, int argc, char **argv, const OptionDef *options,
-                   void (*parse_arg_function)(void *, const char *)) {
+                   void (*parse_arg_function)(void *, const char*))
+{
     const char *opt;
     int optindex, handleoptions = 1, ret;
 
@@ -356,10 +371,8 @@ void parse_options(void *optctx, int argc, char **argv, const OptionDef *options
             }
             opt++;
 
-            if ((ret = parse_option(optctx, opt, argv[optindex], options)) < 0) {
+            if ((ret = parse_option(optctx, opt, argv[optindex], options)) < 0)
                 exit_program(1);
-                return;
-            }
             optindex += ret;
         } else {
             if (parse_arg_function)
@@ -368,7 +381,8 @@ void parse_options(void *optctx, int argc, char **argv, const OptionDef *options
     }
 }
 
-int parse_optgroup(void *optctx, OptionGroup *g) {
+int parse_optgroup(void *optctx, OptionGroup *g)
+{
     int i, ret;
 
     av_log(NULL, AV_LOG_DEBUG, "Parsing a group of options: %s %s.\n",
@@ -380,9 +394,9 @@ int parse_optgroup(void *optctx, OptionGroup *g) {
         if (g->group_def->flags &&
             !(g->group_def->flags & o->opt->flags)) {
             av_log(NULL, AV_LOG_ERROR, "Option %s (%s) cannot be applied to "
-                                       "%s %s -- you are trying to apply an input option to an "
-                                       "output file or vice versa. Move this option before the "
-                                       "file it belongs to.\n", o->key, o->opt->help,
+                   "%s %s -- you are trying to apply an input option to an "
+                   "output file or vice versa. Move this option before the "
+                   "file it belongs to.\n", o->key, o->opt->help,
                    g->group_def->name, g->arg);
             return AVERROR(EINVAL);
         }
@@ -401,7 +415,8 @@ int parse_optgroup(void *optctx, OptionGroup *g) {
 }
 
 int locate_option(int argc, char **argv, const OptionDef *options,
-                  const char *optname) {
+                  const char *optname)
+{
     const OptionDef *po;
     int i;
 
@@ -416,7 +431,7 @@ int locate_option(int argc, char **argv, const OptionDef *options,
             po = find_option(options, cur_opt + 2);
 
         if ((!po->name && !strcmp(cur_opt, optname)) ||
-            (po->name && !strcmp(optname, po->name)))
+             (po->name && !strcmp(optname, po->name)))
             return i;
 
         if (!po->name || po->flags & HAS_ARG)
@@ -425,7 +440,8 @@ int locate_option(int argc, char **argv, const OptionDef *options,
     return 0;
 }
 
-static void dump_argument(FILE *report_file, const char *a) {
+static void dump_argument(FILE *report_file, const char *a)
+{
     const unsigned char *p;
 
     for (p = a; *p; p++)
@@ -448,7 +464,8 @@ static void dump_argument(FILE *report_file, const char *a) {
     fputc('"', report_file);
 }
 
-static void check_options(const OptionDef *po) {
+static void check_options(const OptionDef *po)
+{
     while (po->name) {
         if (po->flags & OPT_PERFILE)
             av_assert0(po->flags & (OPT_INPUT | OPT_OUTPUT));
@@ -456,7 +473,8 @@ static void check_options(const OptionDef *po) {
     }
 }
 
-void parse_loglevel(int argc, char **argv, const OptionDef *options) {
+void parse_loglevel(int argc, char **argv, const OptionDef *options)
+{
     int idx = locate_option(argc, argv, options, "loglevel");
     char *env;
 
@@ -488,16 +506,17 @@ void parse_loglevel(int argc, char **argv, const OptionDef *options) {
 }
 
 static const AVOption *opt_find(void *obj, const char *name, const char *unit,
-                                int opt_flags, int search_flags) {
+                            int opt_flags, int search_flags)
+{
     const AVOption *o = av_opt_find(obj, name, unit, opt_flags, search_flags);
-    if (o && !o->flags)
+    if(o && !o->flags)
         return NULL;
     return o;
 }
 
 #define FLAGS (o->type == AV_OPT_TYPE_FLAGS && (arg[0]=='-' || arg[0]=='+')) ? AV_DICT_APPEND : 0
-
-int opt_default(void *optctx, const char *opt, const char *arg) {
+int opt_default(void *optctx, const char *opt, const char *arg)
+{
     const AVOption *o;
     int consumed = 0;
     char opt_stripped[128];
@@ -518,14 +537,14 @@ int opt_default(void *optctx, const char *opt, const char *arg) {
     av_strlcpy(opt_stripped, opt, FFMIN(sizeof(opt_stripped), p - opt + 1));
 
     if ((o = opt_find(&cc, opt_stripped, NULL, 0,
-                      AV_OPT_SEARCH_CHILDREN | AV_OPT_SEARCH_FAKE_OBJ)) ||
+                         AV_OPT_SEARCH_CHILDREN | AV_OPT_SEARCH_FAKE_OBJ)) ||
         ((opt[0] == 'v' || opt[0] == 'a' || opt[0] == 's') &&
          (o = opt_find(&cc, opt + 1, NULL, 0, AV_OPT_SEARCH_FAKE_OBJ)))) {
         av_dict_set(&codec_opts, opt, arg, FLAGS);
         consumed = 1;
     }
     if ((o = opt_find(&fc, opt, NULL, 0,
-                      AV_OPT_SEARCH_CHILDREN | AV_OPT_SEARCH_FAKE_OBJ))) {
+                         AV_OPT_SEARCH_CHILDREN | AV_OPT_SEARCH_FAKE_OBJ))) {
         av_dict_set(&format_opts, opt, arg, FLAGS);
         if (consumed)
             av_log(NULL, AV_LOG_VERBOSE, "Routing option %s to both codec and muxer layer\n", opt);
@@ -533,7 +552,7 @@ int opt_default(void *optctx, const char *opt, const char *arg) {
     }
 #if CONFIG_SWSCALE
     if (!consumed && (o = opt_find(&sc, opt, NULL, 0,
-                                   AV_OPT_SEARCH_CHILDREN | AV_OPT_SEARCH_FAKE_OBJ))) {
+                         AV_OPT_SEARCH_CHILDREN | AV_OPT_SEARCH_FAKE_OBJ))) {
         if (!strcmp(opt, "srcw") || !strcmp(opt, "srch") ||
             !strcmp(opt, "dstw") || !strcmp(opt, "dsth") ||
             !strcmp(opt, "src_format") || !strcmp(opt, "dst_format")) {
@@ -551,8 +570,8 @@ int opt_default(void *optctx, const char *opt, const char *arg) {
     }
 #endif
 #if CONFIG_SWRESAMPLE
-    if (!consumed && (o = opt_find(&swr_class, opt, NULL, 0,
-                                   AV_OPT_SEARCH_CHILDREN | AV_OPT_SEARCH_FAKE_OBJ))) {
+    if (!consumed && (o=opt_find(&swr_class, opt, NULL, 0,
+                                    AV_OPT_SEARCH_CHILDREN | AV_OPT_SEARCH_FAKE_OBJ))) {
         av_dict_set(&swr_opts, opt, arg, FLAGS);
         consumed = 1;
     }
@@ -569,7 +588,8 @@ int opt_default(void *optctx, const char *opt, const char *arg) {
  * @return index of the group definition that matched or -1 if none
  */
 static int match_group_separator(const OptionGroupDef *groups, int nb_groups,
-                                 const char *opt) {
+                                 const char *opt)
+{
     int i;
 
     for (i = 0; i < nb_groups; i++) {
@@ -588,25 +608,26 @@ static int match_group_separator(const OptionGroupDef *groups, int nb_groups,
  * @param arg argument of the group delimiting option
  */
 static void finish_group(OptionParseContext *octx, int group_idx,
-                         const char *arg) {
+                         const char *arg)
+{
     OptionGroupList *l = &octx->groups[group_idx];
     OptionGroup *g;
 
     GROW_ARRAY(l->groups, l->nb_groups);
     g = &l->groups[l->nb_groups - 1];
 
-    *g = octx->cur_group;
-    g->arg = arg;
-    g->group_def = l->group_def;
-    g->sws_dict = sws_dict;
-    g->swr_opts = swr_opts;
-    g->codec_opts = codec_opts;
+    *g             = octx->cur_group;
+    g->arg         = arg;
+    g->group_def   = l->group_def;
+    g->sws_dict    = sws_dict;
+    g->swr_opts    = swr_opts;
+    g->codec_opts  = codec_opts;
     g->format_opts = format_opts;
 
-    codec_opts = NULL;
+    codec_opts  = NULL;
     format_opts = NULL;
-    sws_dict = NULL;
-    swr_opts = NULL;
+    sws_dict    = NULL;
+    swr_opts    = NULL;
 
     memset(&octx->cur_group, 0, sizeof(octx->cur_group));
 }
@@ -615,7 +636,8 @@ static void finish_group(OptionParseContext *octx, int group_idx,
  * Add an option instance to currently parsed group.
  */
 static void add_opt(OptionParseContext *octx, const OptionDef *opt,
-                    const char *key, const char *val) {
+                    const char *key, const char *val)
+{
     int global = !(opt->flags & (OPT_PERFILE | OPT_SPEC | OPT_OFFSET));
     OptionGroup *g = global ? &octx->global_opts : &octx->cur_group;
 
@@ -626,14 +648,15 @@ static void add_opt(OptionParseContext *octx, const OptionDef *opt,
 }
 
 static void init_parse_context(OptionParseContext *octx,
-                               const OptionGroupDef *groups, int nb_groups) {
-    static const OptionGroupDef global_group = {"global"};
+                               const OptionGroupDef *groups, int nb_groups)
+{
+    static const OptionGroupDef global_group = { "global" };
     int i;
 
     memset(octx, 0, sizeof(*octx));
 
     octx->nb_groups = nb_groups;
-    octx->groups = av_calloc(octx->nb_groups, sizeof(*octx->groups));
+    octx->groups    = av_calloc(octx->nb_groups, sizeof(*octx->groups));
     if (!octx->groups)
         report_and_exit(AVERROR(ENOMEM));
 
@@ -641,10 +664,11 @@ static void init_parse_context(OptionParseContext *octx,
         octx->groups[i].group_def = &groups[i];
 
     octx->global_opts.group_def = &global_group;
-    octx->global_opts.arg = "";
+    octx->global_opts.arg       = "";
 }
 
-void uninit_parse_context(OptionParseContext *octx) {
+void uninit_parse_context(OptionParseContext *octx)
+{
     int i, j;
 
     for (i = 0; i < octx->nb_groups; i++) {
@@ -670,7 +694,8 @@ void uninit_parse_context(OptionParseContext *octx) {
 
 int split_commandline(OptionParseContext *octx, int argc, char *argv[],
                       const OptionDef *options,
-                      const OptionGroupDef *groups, int nb_groups) {
+                      const OptionGroupDef *groups, int nb_groups)
+{
     int optindex = 1;
     int dashdash = -2;
 
@@ -692,7 +717,7 @@ int split_commandline(OptionParseContext *octx, int argc, char *argv[],
             continue;
         }
         /* unnamed group separators, e.g. output filename */
-        if (opt[0] != '-' || !opt[1] || dashdash + 1 == optindex) {
+        if (opt[0] != '-' || !opt[1] || dashdash+1 == optindex) {
             finish_group(octx, 0, opt);
             av_log(NULL, AV_LOG_DEBUG, " matched as %s.\n", groups[0].name);
             continue;
@@ -731,7 +756,7 @@ do {                                                                           \
 
             add_opt(octx, po, opt, arg);
             av_log(NULL, AV_LOG_DEBUG, " matched as option '%s' (%s) with "
-                                       "argument '%s'.\n", po->name, po->help, arg);
+                   "argument '%s'.\n", po->name, po->help, arg);
             continue;
         }
 
@@ -740,12 +765,12 @@ do {                                                                           \
             ret = opt_default(NULL, opt, argv[optindex]);
             if (ret >= 0) {
                 av_log(NULL, AV_LOG_DEBUG, " matched as AVOption '%s' with "
-                                           "argument '%s'.\n", opt, argv[optindex]);
+                       "argument '%s'.\n", opt, argv[optindex]);
                 optindex++;
                 continue;
             } else if (ret != AVERROR_OPTION_NOT_FOUND) {
                 av_log(NULL, AV_LOG_ERROR, "Error parsing option '%s' "
-                                           "with argument '%s'.\n", opt, argv[optindex]);
+                       "with argument '%s'.\n", opt, argv[optindex]);
                 return ret;
             }
         }
@@ -756,7 +781,7 @@ do {                                                                           \
             po->name && po->flags & OPT_BOOL) {
             add_opt(octx, po, opt, "0");
             av_log(NULL, AV_LOG_DEBUG, " matched as option '%s' (%s) with "
-                                       "argument 0.\n", po->name, po->help);
+                   "argument 0.\n", po->name, po->help);
             continue;
         }
 
@@ -766,18 +791,20 @@ do {                                                                           \
 
     if (octx->cur_group.nb_opts || codec_opts || format_opts)
         av_log(NULL, AV_LOG_WARNING, "Trailing option(s) found in the "
-                                     "command: may be ignored.\n");
+               "command: may be ignored.\n");
 
     av_log(NULL, AV_LOG_DEBUG, "Finished splitting the commandline.\n");
 
     return 0;
 }
 
-void print_error(const char *filename, int err) {
+void print_error(const char *filename, int err)
+{
     av_log(NULL, AV_LOG_ERROR, "%s: %s\n", filename, av_err2str(err));
 }
 
-int read_yesno(void) {
+int read_yesno(void)
+{
     int c = getchar();
     int yesno = (av_toupper(c) == 'Y');
 
@@ -789,7 +816,8 @@ int read_yesno(void) {
 
 FILE *get_preset_file(char *filename, size_t filename_size,
                       const char *preset_name, int is_path,
-                      const char *codec_name) {
+                      const char *codec_name)
+{
     FILE *f = NULL;
     int i;
 #if HAVE_GETMODULEHANDLE && defined(_WIN32)
@@ -797,9 +825,9 @@ FILE *get_preset_file(char *filename, size_t filename_size,
 #endif
     char *env_home = getenv_utf8("HOME");
     char *env_ffmpeg_datadir = getenv_utf8("FFMPEG_DATADIR");
-    const char *base[3] = {env_ffmpeg_datadir,
-                           env_home,   /* index=1(HOME) is special: search in a .ffmpeg subfolder */
-                           FFMPEG_DATADIR,};
+    const char *base[3] = { env_ffmpeg_datadir,
+                            env_home,   /* index=1(HOME) is special: search in a .ffmpeg subfolder */
+                            FFMPEG_DATADIR, };
 
     if (is_path) {
         av_strlcpy(filename, preset_name, filename_size);
@@ -858,7 +886,8 @@ FILE *get_preset_file(char *filename, size_t filename_size,
     return f;
 }
 
-int check_stream_specifier(AVFormatContext *s, AVStream *st, const char *spec) {
+int check_stream_specifier(AVFormatContext *s, AVStream *st, const char *spec)
+{
     int ret = avformat_match_stream_specifier(s, st, spec);
     if (ret < 0)
         av_log(s, AV_LOG_ERROR, "Invalid stream specifier: %s.\n", spec);
@@ -866,31 +895,32 @@ int check_stream_specifier(AVFormatContext *s, AVStream *st, const char *spec) {
 }
 
 AVDictionary *filter_codec_opts(AVDictionary *opts, enum AVCodecID codec_id,
-                                AVFormatContext *s, AVStream *st, const AVCodec *codec) {
-    AVDictionary *ret = NULL;
+                                AVFormatContext *s, AVStream *st, const AVCodec *codec)
+{
+    AVDictionary    *ret = NULL;
     const AVDictionaryEntry *t = NULL;
-    int flags = s->oformat ? AV_OPT_FLAG_ENCODING_PARAM
-                           : AV_OPT_FLAG_DECODING_PARAM;
-    char prefix = 0;
-    const AVClass *cc = avcodec_get_class();
+    int            flags = s->oformat ? AV_OPT_FLAG_ENCODING_PARAM
+                                      : AV_OPT_FLAG_DECODING_PARAM;
+    char          prefix = 0;
+    const AVClass    *cc = avcodec_get_class();
 
     if (!codec)
-        codec = s->oformat ? avcodec_find_encoder(codec_id)
-                           : avcodec_find_decoder(codec_id);
+        codec            = s->oformat ? avcodec_find_encoder(codec_id)
+                                      : avcodec_find_decoder(codec_id);
 
     switch (st->codecpar->codec_type) {
-        case AVMEDIA_TYPE_VIDEO:
-            prefix = 'v';
-            flags |= AV_OPT_FLAG_VIDEO_PARAM;
-            break;
-        case AVMEDIA_TYPE_AUDIO:
-            prefix = 'a';
-            flags |= AV_OPT_FLAG_AUDIO_PARAM;
-            break;
-        case AVMEDIA_TYPE_SUBTITLE:
-            prefix = 's';
-            flags |= AV_OPT_FLAG_SUBTITLE_PARAM;
-            break;
+    case AVMEDIA_TYPE_VIDEO:
+        prefix  = 'v';
+        flags  |= AV_OPT_FLAG_VIDEO_PARAM;
+        break;
+    case AVMEDIA_TYPE_AUDIO:
+        prefix  = 'a';
+        flags  |= AV_OPT_FLAG_AUDIO_PARAM;
+        break;
+    case AVMEDIA_TYPE_SUBTITLE:
+        prefix  = 's';
+        flags  |= AV_OPT_FLAG_SUBTITLE_PARAM;
+        break;
     }
 
     while (t = av_dict_iterate(opts, t)) {
@@ -900,14 +930,9 @@ AVDictionary *filter_codec_opts(AVDictionary *opts, enum AVCodecID codec_id,
         /* check stream specification in opt name */
         if (p)
             switch (check_stream_specifier(s, st, p + 1)) {
-                case 1:
-                    *p = 0;
-                    break;
-                case 0:
-                    continue;
-                default:
-                    exit_program(1);
-                    return NULL;
+            case  1: *p = 0; break;
+            case  0:         continue;
+            default:         exit_program(1);
             }
 
         if (av_opt_find(&cc, t->key, NULL, flags, AV_OPT_SEARCH_FAKE_OBJ) ||
@@ -928,7 +953,8 @@ AVDictionary *filter_codec_opts(AVDictionary *opts, enum AVCodecID codec_id,
 }
 
 AVDictionary **setup_find_stream_info_opts(AVFormatContext *s,
-                                           AVDictionary *codec_opts) {
+                                           AVDictionary *codec_opts)
+{
     int i;
     AVDictionary **opts;
 
@@ -943,24 +969,25 @@ AVDictionary **setup_find_stream_info_opts(AVFormatContext *s,
     return opts;
 }
 
-void *grow_array(void *array, int elem_size, int *size, int new_size) {
+void *grow_array(void *array, int elem_size, int *size, int new_size)
+{
     if (new_size >= INT_MAX / elem_size) {
         av_log(NULL, AV_LOG_ERROR, "Array too big.\n");
         exit_program(1);
-        return NULL;
     }
     if (*size < new_size) {
         uint8_t *tmp = av_realloc_array(array, new_size, elem_size);
         if (!tmp)
             report_and_exit(AVERROR(ENOMEM));
-        memset(tmp + *size * elem_size, 0, (new_size - *size) * elem_size);
+        memset(tmp + *size*elem_size, 0, (new_size-*size) * elem_size);
         *size = new_size;
         return tmp;
     }
     return array;
 }
 
-void *allocate_array_elem(void *ptr, size_t elem_size, int *nb_elems) {
+void *allocate_array_elem(void *ptr, size_t elem_size, int *nb_elems)
+{
     void *new_elem;
 
     if (!(new_elem = av_mallocz(elem_size)) ||
@@ -969,18 +996,19 @@ void *allocate_array_elem(void *ptr, size_t elem_size, int *nb_elems) {
     return new_elem;
 }
 
-double get_rotation(int32_t *displaymatrix) {
+double get_rotation(int32_t *displaymatrix)
+{
     double theta = 0;
     if (displaymatrix)
-        theta = -round(av_display_rotation_get((int32_t *) displaymatrix));
+        theta = -round(av_display_rotation_get((int32_t*) displaymatrix));
 
-    theta -= 360 * floor(theta / 360 + 0.9 / 360);
+    theta -= 360*floor(theta/360 + 0.9/360);
 
-    if (fabs(theta - 90 * round(theta / 90)) > 2)
+    if (fabs(theta - 90*round(theta/90)) > 2)
         av_log(NULL, AV_LOG_WARNING, "Odd rotation angle.\n"
-                                     "If you want to help, upload a sample "
-                                     "of this file to https://streams.videolan.org/upload/ "
-                                     "and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)");
+               "If you want to help, upload a sample "
+               "of this file to https://streams.videolan.org/upload/ "
+               "and contact the ffmpeg-devel mailing list. (ffmpeg-devel@ffmpeg.org)");
 
     return theta;
 }

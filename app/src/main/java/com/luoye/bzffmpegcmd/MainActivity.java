@@ -8,7 +8,6 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bzcommon.utils.BZPermissionUtil;
-import com.luoye.bzcommonlib.BuildConfig;
 import com.luoye.bzmedia.utils.FFmpegCMDUtil;
 
 public class MainActivity extends AppCompatActivity {

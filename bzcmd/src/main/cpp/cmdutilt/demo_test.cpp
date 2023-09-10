@@ -35,12 +35,16 @@ void log_call_back(void *ptr, int level, const char *fmt, va_list vl) {
     } else if (level == 1) {
         __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
     } else {
-        if (level <= 16) {//ffmpeg 来的日志
+        if (level <= AV_LOG_ERROR) {//ffmpeg 来的日志
             __android_log_vprint(ANDROID_LOG_ERROR, TAG, fmt, vl);
-        } else if (level <= 24) {
+        } else if (level <= AV_LOG_WARNING) {
             __android_log_vprint(ANDROID_LOG_WARN, TAG, fmt, vl);
+        } else if (level == AV_LOG_INFO) {
+            __android_log_vprint(ANDROID_LOG_INFO, TAG, fmt, vl);
+        } else if (level == AV_LOG_DEBUG || level == AV_LOG_TRACE) {
+//            __android_log_vprint(ANDROID_LOG_DEBUG, TAG, fmt, vl);
         } else {
-//            __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
+            __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
         }
     }
 }

@@ -578,7 +578,6 @@ static void add_display_matrix_to_stream(const OptionsContext *o,
     if (!buf) {
         av_log(NULL, AV_LOG_FATAL, "Failed to generate a display matrix!\n");
         exit_program(1);
-        return;
     }
 
     av_display_rotation_set(buf,
@@ -694,7 +693,6 @@ static void add_input_streams(const OptionsContext *o, Demuxer *d)
                                    av_hwdevice_get_type_name(type));
                         av_log(NULL, AV_LOG_FATAL, "\n");
                         exit_program(1);
-                        return;
                     }
                 }
             }
@@ -728,7 +726,6 @@ static void add_input_streams(const OptionsContext *o, Demuxer *d)
             av_log(NULL, AV_LOG_ERROR, "Error parsing discard %s.\n",
                     discard_str);
             exit_program(1);
-            return;
         }
 
         ist->filter_in_rescale_delta_last = AV_NOPTS_VALUE;
@@ -742,7 +739,6 @@ static void add_input_streams(const OptionsContext *o, Demuxer *d)
         if (ret < 0) {
             av_log(NULL, AV_LOG_ERROR, "Error initializing the decoder context.\n");
             exit_program(1);
-            return;
         }
 
         ist->decoded_frame = av_frame_alloc();
@@ -767,7 +763,6 @@ static void add_input_streams(const OptionsContext *o, Demuxer *d)
                 av_log(NULL, AV_LOG_ERROR, "Error parsing framerate %s.\n",
                        framerate);
                 exit_program(1);
-                return;
             }
 
             ist->top_field_first = -1;
@@ -790,7 +785,6 @@ static void add_input_streams(const OptionsContext *o, Demuxer *d)
                 av_parse_video_size(&ist->dec_ctx->width, &ist->dec_ctx->height, canvas_size) < 0) {
                 av_log(NULL, AV_LOG_FATAL, "Invalid canvas size: %s.\n", canvas_size);
                 exit_program(1);
-                return;
             }
             break;
         }
@@ -809,7 +803,6 @@ static void add_input_streams(const OptionsContext *o, Demuxer *d)
         if (ret < 0) {
             av_log(NULL, AV_LOG_ERROR, "Error initializing the decoder context.\n");
             exit_program(1);
-            return;
         }
     }
 }
@@ -831,7 +824,6 @@ static void dump_attachment(AVStream *st, const char *filename)
         av_log(NULL, AV_LOG_FATAL, "No filename specified and no 'filename' tag"
                "in stream #%d:%d.\n", nb_input_files - 1, st->index);
         exit_program(1);
-        return;
     }
 
     assert_file_overwrite(filename);
@@ -840,7 +832,6 @@ static void dump_attachment(AVStream *st, const char *filename)
         av_log(NULL, AV_LOG_FATAL, "Could not open file %s for writing.\n",
                filename);
         exit_program(1);
-        return;
     }
 
     avio_write(out, st->codecpar->extradata, st->codecpar->extradata_size);
@@ -878,7 +869,7 @@ int ifile_open(const OptionsContext *o, const char *filename)
         int64_t start = start_time == AV_NOPTS_VALUE ? 0 : start_time;
         if (stop_time <= start) {
             av_log(NULL, AV_LOG_ERROR, "-to value smaller than -ss; aborting.\n");
-            return exit_program(1);
+            exit_program(1);
         } else {
             recording_time = stop_time - start;
         }
@@ -887,7 +878,7 @@ int ifile_open(const OptionsContext *o, const char *filename)
     if (o->format) {
         if (!(file_iformat = av_find_input_format(o->format))) {
             av_log(NULL, AV_LOG_FATAL, "Unknown input format: '%s'\n", o->format);
-            return exit_program(1);
+            exit_program(1);
         }
     }
 
@@ -974,7 +965,7 @@ int ifile_open(const OptionsContext *o, const char *filename)
         print_error(filename, err);
         if (err == AVERROR_PROTOCOL_NOT_FOUND)
             av_log(NULL, AV_LOG_ERROR, "Did you mean file:%s?\n", filename);
-        return exit_program(1);
+        exit_program(1);
     }
     if (scan_all_pmts_set)
         av_dict_set(&o->g->format_opts, "scan_all_pmts", NULL, AV_DICT_MATCH_CASE);
@@ -1001,7 +992,7 @@ int ifile_open(const OptionsContext *o, const char *filename)
             av_log(NULL, AV_LOG_FATAL, "%s: could not find codec parameters\n", filename);
             if (ic->nb_streams == 0) {
                 avformat_close_input(&ic);
-                return exit_program(1);
+                exit_program(1);
             }
         }
     }
@@ -1014,7 +1005,7 @@ int ifile_open(const OptionsContext *o, const char *filename)
     if (start_time_eof != AV_NOPTS_VALUE) {
         if (start_time_eof >= 0) {
             av_log(NULL, AV_LOG_ERROR, "-sseof value must be negative; aborting\n");
-            return exit_program(1);
+            exit_program(1);
         }
         if (ic->duration > 0) {
             start_time = start_time_eof + ic->duration;
@@ -1073,7 +1064,7 @@ int ifile_open(const OptionsContext *o, const char *filename)
     f->readrate = o->readrate ? o->readrate : 0.0;
     if (f->readrate < 0.0f) {
         av_log(NULL, AV_LOG_ERROR, "Option -readrate for Input #%d is %0.3f; it must be non-negative.\n", f->index, f->readrate);
-        return exit_program(1);
+        exit_program(1);
     }
     if (f->readrate && f->rate_emu) {
         av_log(NULL, AV_LOG_WARNING, "Both -readrate and -re set for Input #%d. Using -readrate %0.3f.\n", f->index, f->readrate);
@@ -1113,7 +1104,7 @@ int ifile_open(const OptionsContext *o, const char *filename)
                    "input file #%d (%s) is not a decoding option.\n", e->key,
                    option->help ? option->help : "", f->index,
                    filename);
-            return exit_program(1);
+            exit_program(1);
         }
 
         av_log(NULL, AV_LOG_WARNING, "Codec AVOption %s (%s) specified for "

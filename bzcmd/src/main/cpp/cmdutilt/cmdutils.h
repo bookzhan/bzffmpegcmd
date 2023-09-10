@@ -23,6 +23,7 @@
 #define FFTOOLS_CMDUTILS_H
 
 #include <stdint.h>
+#include <setjmp.h>
 
 #include "config.h"
 #include "libavcodec/avcodec.h"
@@ -33,6 +34,8 @@
 #ifdef _WIN32
 #undef main /* We don't want SDL to override our main() */
 #endif
+
+extern jmp_buf jump_buffer;
 
 /**
  * program name, defined by the program for show_version().
@@ -63,12 +66,12 @@ void register_exit(void (*cb)(int ret));
  *       library functions can return both, so call this only
  *       with AVERROR(EFOO) of your own.
  */
-void report_and_exit(int ret) av_noreturn;
+void report_and_exit(int ret);
 
 /**
  * Wraps exit with a program-specific cleanup routine.
  */
-int exit_program(int ret);
+void exit_program(int ret);
 
 /**
  * Initialize dynamic library loading
