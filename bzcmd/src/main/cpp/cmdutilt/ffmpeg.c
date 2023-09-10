@@ -329,7 +329,7 @@ static void term_exit_sigsafe(void) {
 }
 
 void term_exit(void) {
-    av_log(NULL, AV_LOG_QUIET, "%s", "term_exit");
+    av_log(NULL, AV_LOG_VERBOSE, "%s", "term_exit");
     term_exit_sigsafe();
 }
 

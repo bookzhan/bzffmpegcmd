@@ -7,19 +7,35 @@ static pthread_mutex_t cmdLock;
 static int cmdLockHasInit = 0;
 bool hasRegistered = false;
 
+char *pre_hande_cmd(const char *src_cmd) {
+    char *final_cmd = malloc(2048);
+    memset(final_cmd, 0, 2048);
+    const char *option = "-c:v";  // 子串
+    // 检测是否包含子串
+    if (strstr(src_cmd, option) == NULL) {
+        const char *last_space = strrchr(src_cmd, ' ');
+        strncpy(final_cmd, src_cmd, last_space - src_cmd + 1);  // 复制最后一个空格之前的部分
+        strcpy(final_cmd + (last_space - src_cmd + 1), "-c:v libx264 -preset ultrafast ");  // 添加选项和之后的部分
+        strcat(final_cmd, last_space + 1);  // 添加空格之后的内容
+    } else {
+        strcpy(final_cmd, src_cmd);
+    }
+    return final_cmd;
+}
 
-int executeFFmpegCommand4TotalTime(int64_t handle, const char * command,
+int executeFFmpegCommand4TotalTime(int64_t handle, const char *in_command,
                                    void (*progressCallBack)(int64_t, int, float),
                                    int64_t totalTime) {
-    if (NULL == command) {
-        av_log(NULL, AV_LOG_ERROR, "NULL==command");
+    if (NULL == in_command) {
+        av_log(NULL, AV_LOG_ERROR, "NULL==in_command");
         return -1;
     }
     if (!hasRegistered) {
         avformat_network_init();
         hasRegistered = true;
     }
-    av_log(NULL, AV_LOG_DEBUG, "bz_cmd=%s", command);
+    char *command = pre_hande_cmd(in_command);
+    av_log(NULL, AV_LOG_INFO, "after pre_hande_cmd=%s", command);
     if (!cmdLockHasInit) {
         pthread_mutex_init(&cmdLock, NULL);//初始化
         cmdLockHasInit = 1;
@@ -66,6 +82,7 @@ int executeFFmpegCommand4TotalTime(int64_t handle, const char * command,
     for (int i = 0; i < index; ++i) {
         free(argv[i]);
     }
+    free(command);
     pthread_mutex_unlock(&cmdLock);
     return ret;
 }

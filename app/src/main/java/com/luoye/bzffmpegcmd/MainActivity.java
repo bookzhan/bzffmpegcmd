@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 long startTime = System.currentTimeMillis();
-                String cmd = "ffmpeg -y -c:v h264_mediacodec -i /sdcard/bzmedia/testvideo.mp4 -c:v libx264 /sdcard/bzmedia/out_" + System.nanoTime() + ".mp4";
+                String cmd = "ffmpeg -y -i /sdcard/bzmedia/testvideo.mp4 /sdcard/bzmedia/out_" + System.nanoTime() + ".mp4";
                 //变速之后回调视频时长变了,进度就不准确了,需要传一个总时间去纠正进度
 //                String cmd = "ffmpeg -y -i /storage/emulated/0/bzmedia/input_1.m4a -af atempo=10 /storage/emulated/0/bzmedia/audio_1617190120996.m4a";
 
