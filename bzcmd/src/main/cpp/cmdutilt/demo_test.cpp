@@ -68,6 +68,10 @@ Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_executeFFmpegCommand(JNIEnv *env,
                                                                 jstring command_,
                                                                 jobject actionCallBack,
                                                                 jlong totalTime) {
+    if (!hasRegistered) {
+        avformat_network_init();
+        hasRegistered = true;
+    }
     int ret = 0;
     const char *command = (*env).GetStringUTFChars(command_, 0);
     if (NULL != actionCallBack) {
