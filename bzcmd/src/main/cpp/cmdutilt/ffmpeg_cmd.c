@@ -24,8 +24,9 @@ char *pre_hande_cmd(const char *src_cmd) {
     char *final_cmd = malloc(CMD_BUFFER_SIZE);
     memset(final_cmd, 0, CMD_BUFFER_SIZE);
     strcpy(final_cmd, src_cmd);
-    // 检测是否包含子串
-    if (strstr(final_cmd, "-c:v") == NULL) {
+    //如果保存的是mp4文件,并且没有设置编码的情况下才默认处理
+    if (strstr(final_cmd, "-c:v") == NULL && strstr(final_cmd, "-vn") == NULL
+        && (strstr(final_cmd, ".mp4") != NULL || strstr(final_cmd, ".MP4") != NULL)) {
         char *buffer = append_command(final_cmd, "-c:v libx264 ");
         memset(final_cmd, 0, CMD_BUFFER_SIZE);
         strcpy(final_cmd, buffer);
