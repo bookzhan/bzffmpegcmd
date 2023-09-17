@@ -101,7 +101,7 @@ void exit_program(int ret)
     if (program_exit)
         program_exit(ret);
 
-    av_log(NULL, AV_LOG_FATAL, "exit_program ret=%s", av_err2str(ret));
+    av_log(NULL, AV_LOG_INFO, "exit_program ret=%s", av_err2str(ret));
     //0是setjmp的标记避免使用0
     longjmp(jump_buffer, ret >= 0 ? 1 : ret);
 }
