@@ -54,7 +54,7 @@ int executeFFmpegCommand4TotalTime(int64_t handle, const char *in_command,
         hasRegistered = true;
     }
     char *command = pre_hande_cmd(in_command);
-    av_log(NULL, AV_LOG_INFO, "after pre_hande_cmd=%s", command);
+    av_log(NULL, AV_LOG_WARNING, "after pre_hande_cmd=%s", command);
     if (!cmdLockHasInit) {
         pthread_mutex_init(&cmdLock, NULL);//初始化
         cmdLockHasInit = 1;

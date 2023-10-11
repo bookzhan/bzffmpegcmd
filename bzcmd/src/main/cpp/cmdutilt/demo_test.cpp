@@ -39,12 +39,12 @@ void log_call_back(void *ptr, int level, const char *fmt, va_list vl) {
             __android_log_vprint(ANDROID_LOG_ERROR, TAG, fmt, vl);
         } else if (level <= AV_LOG_WARNING) {
             __android_log_vprint(ANDROID_LOG_WARN, TAG, fmt, vl);
-        } else if (level == AV_LOG_INFO) {
-            __android_log_vprint(ANDROID_LOG_INFO, TAG, fmt, vl);
-        } else if (level == AV_LOG_DEBUG || level == AV_LOG_TRACE) {
-//            __android_log_vprint(ANDROID_LOG_DEBUG, TAG, fmt, vl);
-        } else {
+        }else if (level == AV_LOG_INFO) {
             __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
+        } else if (level == AV_LOG_DEBUG || level == AV_LOG_TRACE) {
+//            __android_log_vprint(AV_LOG_DEBUG, TAG, fmt, vl);
+        } else {
+//            __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
         }
     }
 }
