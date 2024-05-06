@@ -105,7 +105,8 @@ public class MainActivity extends AppCompatActivity {
                     String[] envp = new String[]{
                             "LD_LIBRARY_PATH=/data/user/0/com.luoye.bzffmpegcmd/files/"
                     };
-                    String cmd = "./ffmpeg -y -i /sdcard/bzmedia/testvideo.mp4 /sdcard/bzmedia/out_" + System.nanoTime() + ".mp4";
+                    String cmd = "./ffmpeg -y -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 -t 13.233 /storage/emulated/0/bzmedia/audio_20240506_0825_03860.m4a";
+//                    String cmd = "./ffmpeg -y -i /sdcard/bzmedia/testvideo.mp4 /sdcard/bzmedia/out_" + System.nanoTime() + ".mp4";
                     Process process = Runtime.getRuntime().exec(cmd, envp, new File("/data/user/0/com.luoye.bzffmpegcmd/files/"));
                     InputStream inputStream = process.getInputStream();
                     BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
