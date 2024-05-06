@@ -6,7 +6,14 @@ package com.luoye.bzmedia.utils;
  */
 public class FFmpegCMDUtil {
     static {
-        System.loadLibrary("bzffmpeg");
+        System.loadLibrary("avcodec");
+        System.loadLibrary("avdevice");
+        System.loadLibrary("avfilter");
+        System.loadLibrary("avformat");
+        System.loadLibrary("avutil");
+        System.loadLibrary("postproc");
+        System.loadLibrary("swresample");
+        System.loadLibrary("swscale");
         System.loadLibrary("bzffmpegcmd");
     }
 

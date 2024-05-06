@@ -46,16 +46,72 @@ find_library(log-lib log)
 find_library(m-lib m)
 find_library(z-lib z)
 
-configure_file(${bzffmpegcmd_SOURCE_DIR}/lib/${ANDROID_ABI}/libbzffmpeg.so ${bzffmpegcmd_BINARY_DIR}/libbzffmpeg.so COPYONLY)
+configure_file(${bzffmpegcmd_SOURCE_DIR}/lib/${ANDROID_ABI}/libavcodec.so ${bzffmpegcmd_BINARY_DIR}/libavcodec.so COPYONLY)
+configure_file(${bzffmpegcmd_SOURCE_DIR}/lib/${ANDROID_ABI}/libavdevice.so ${bzffmpegcmd_BINARY_DIR}/libavdevice.so COPYONLY)
+configure_file(${bzffmpegcmd_SOURCE_DIR}/lib/${ANDROID_ABI}/libavfilter.so ${bzffmpegcmd_BINARY_DIR}/libavfilter.so COPYONLY)
+configure_file(${bzffmpegcmd_SOURCE_DIR}/lib/${ANDROID_ABI}/libavformat.so ${bzffmpegcmd_BINARY_DIR}/libavformat.so COPYONLY)
+configure_file(${bzffmpegcmd_SOURCE_DIR}/lib/${ANDROID_ABI}/libavutil.so ${bzffmpegcmd_BINARY_DIR}/libavutil.so COPYONLY)
+configure_file(${bzffmpegcmd_SOURCE_DIR}/lib/${ANDROID_ABI}/libpostproc.so ${bzffmpegcmd_BINARY_DIR}/libpostproc.so COPYONLY)
+configure_file(${bzffmpegcmd_SOURCE_DIR}/lib/${ANDROID_ABI}/libswresample.so ${bzffmpegcmd_BINARY_DIR}/libswresample.so COPYONLY)
+configure_file(${bzffmpegcmd_SOURCE_DIR}/lib/${ANDROID_ABI}/libswscale.so ${bzffmpegcmd_BINARY_DIR}/libswscale.so COPYONLY)
 
 
 #ffmpeg
-add_library(bzffmpeg-lib
+add_library(libavcodec-lib
         SHARED
         IMPORTED)
-set_target_properties(bzffmpeg-lib
+set_target_properties(libavcodec-lib
         PROPERTIES IMPORTED_LOCATION
-        libbzffmpeg.so)
+        libavcodec.so)
+
+add_library(libavdevice-lib
+        SHARED
+        IMPORTED)
+set_target_properties(libavdevice-lib
+        PROPERTIES IMPORTED_LOCATION
+        libavdevice.so)
+
+add_library(libavfilter-lib
+        SHARED
+        IMPORTED)
+set_target_properties(libavfilter-lib
+        PROPERTIES IMPORTED_LOCATION
+        libavfilter.so)
+
+add_library(libavformat-lib
+        SHARED
+        IMPORTED)
+set_target_properties(libavformat-lib
+        PROPERTIES IMPORTED_LOCATION
+        libavformat.so)
+
+add_library(libavutil-lib
+        SHARED
+        IMPORTED)
+set_target_properties(libavutil-lib
+        PROPERTIES IMPORTED_LOCATION
+        libavutil.so)
+
+add_library(libpostproc-lib
+        SHARED
+        IMPORTED)
+set_target_properties(libpostproc-lib
+        PROPERTIES IMPORTED_LOCATION
+        libpostproc.so)
+
+add_library(libswresample-lib
+        SHARED
+        IMPORTED)
+set_target_properties(libswresample-lib
+        PROPERTIES IMPORTED_LOCATION
+        libswresample.so)
+
+add_library(libswscale-lib
+        SHARED
+        IMPORTED)
+set_target_properties(libswscale-lib
+        PROPERTIES IMPORTED_LOCATION
+        libswscale.so)
 
 
 include_directories(
@@ -83,4 +139,4 @@ target_link_libraries( # Specifies the target library.
 
         # Links the target library to the log library
         # included in the NDK.
-        bzffmpeg-lib ${log-lib} ${m-lib} ${z-lib})
+        libavcodec-lib libavdevice-lib libavfilter-lib libavformat-lib libavutil-lib libpostproc-lib libswresample-lib libswscale-lib ${log-lib} ${m-lib} ${z-lib})

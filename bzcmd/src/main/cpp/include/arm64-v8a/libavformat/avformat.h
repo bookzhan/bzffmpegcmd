@@ -307,7 +307,7 @@
  * @}
  */
 
-#include <ffmpeg_time.h>
+#include <time.h>
 #include <stdio.h>  /* FILE */
 
 #include "libavcodec/codec.h"
