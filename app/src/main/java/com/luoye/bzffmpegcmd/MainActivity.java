@@ -29,7 +29,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 long startTime = System.currentTimeMillis();
-                String cmd = "ffmpeg -y -i /sdcard/bzmedia/testvideo.mp4 /sdcard/bzmedia/out_" + System.nanoTime() + ".mp4";
+                String cmd = "ffmpeg -y -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=44100 -t 13.233 /storage/emulated/0/bzmedia/audio_20240506_0825_03860.m4a";
+//                String cmd = "ffmpeg -y -i /sdcard/bzmedia/testvideo.mp4 /sdcard/bzmedia/out_" + System.nanoTime() + ".mp4";
                 //变速之后回调视频时长变了,进度就不准确了,需要传一个总时间去纠正进度
 //                String cmd = "ffmpeg -y -i /storage/emulated/0/bzmedia/input_1.m4a -af atempo=10 /storage/emulated/0/bzmedia/audio_1617190120996.m4a";
 
