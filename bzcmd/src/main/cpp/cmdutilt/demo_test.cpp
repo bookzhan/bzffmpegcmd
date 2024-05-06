@@ -18,7 +18,6 @@ extern "C" {
 #include <libavfilter/avfilter.h>
 }
 
-extern int hasRegistered;
 typedef struct CallBackInfo {
     JNIEnv *env;
     jobject obj;
@@ -39,7 +38,7 @@ void log_call_back(void *ptr, int level, const char *fmt, va_list vl) {
             __android_log_vprint(ANDROID_LOG_ERROR, TAG, fmt, vl);
         } else if (level <= AV_LOG_WARNING) {
             __android_log_vprint(ANDROID_LOG_WARN, TAG, fmt, vl);
-        }else if (level == AV_LOG_INFO) {
+        } else if (level == AV_LOG_INFO) {
             __android_log_vprint(ANDROID_LOG_VERBOSE, TAG, fmt, vl);
         } else if (level == AV_LOG_DEBUG || level == AV_LOG_TRACE) {
 //            __android_log_vprint(AV_LOG_DEBUG, TAG, fmt, vl);
@@ -68,10 +67,6 @@ Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_executeFFmpegCommand(JNIEnv *env,
                                                                 jstring command_,
                                                                 jobject actionCallBack,
                                                                 jlong totalTime) {
-    if (!hasRegistered) {
-        avformat_network_init();
-        hasRegistered = true;
-    }
     int ret = 0;
     const char *command = (*env).GetStringUTFChars(command_, 0);
     if (NULL != actionCallBack) {
@@ -121,10 +116,6 @@ Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_getMediaDuration(JNIEnv *env, jclass 
                                                             jstring media_path) {
     if (NULL == media_path) {
         return -1;
-    }
-    if (!hasRegistered) {
-        avformat_network_init();
-        hasRegistered = true;
     }
     const char *mediaPath = (*env).GetStringUTFChars(media_path, 0);
     AVFormatContext *in_fmt_ctx = NULL;
