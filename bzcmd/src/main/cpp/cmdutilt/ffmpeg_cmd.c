@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "ffmpeg.h"
+#include "avdevice.h"
 
 //保证同时只能一个线程执行
 static pthread_mutex_t cmdLock;
@@ -50,6 +51,9 @@ int executeFFmpegCommand4TotalTime(int64_t handle, const char *in_command,
         return -1;
     }
     if (!hasRegistered) {
+#if CONFIG_AVDEVICE
+        avdevice_register_all();
+#endif
         avformat_network_init();
         hasRegistered = true;
     }

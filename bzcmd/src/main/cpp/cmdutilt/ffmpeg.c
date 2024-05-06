@@ -4190,10 +4190,10 @@ int exe_ffmpeg_cmd(int argc, char **argv,
     av_log_set_flags(AV_LOG_SKIP_REPEATED);
     parse_loglevel(argc, argv, options);
 
-#if CONFIG_AVDEVICE
-    avdevice_register_all();
-#endif
-    avformat_network_init();
+//#if CONFIG_AVDEVICE
+//    avdevice_register_all();
+//#endif
+//    avformat_network_init();
 
     show_banner(argc, argv, options);
 
