@@ -18,7 +18,6 @@ extern "C" {
 #include <libavfilter/avfilter.h>
 }
 
-extern int hasRegistered;
 typedef struct CallBackInfo {
     JNIEnv *env;
     jobject obj;
@@ -68,10 +67,6 @@ Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_executeFFmpegCommand(JNIEnv *env,
                                                                 jstring command_,
                                                                 jobject actionCallBack,
                                                                 jlong totalTime) {
-    if (!hasRegistered) {
-        avformat_network_init();
-        hasRegistered = true;
-    }
     int ret = 0;
     const char *command = (*env).GetStringUTFChars(command_, 0);
     if (NULL != actionCallBack) {
@@ -122,10 +117,7 @@ Java_com_luoye_bzmedia_utils_FFmpegCMDUtil_getMediaDuration(JNIEnv *env, jclass 
     if (NULL == media_path) {
         return -1;
     }
-    if (!hasRegistered) {
-        avformat_network_init();
-        hasRegistered = true;
-    }
+
     const char *mediaPath = (*env).GetStringUTFChars(media_path, 0);
     AVFormatContext *in_fmt_ctx = NULL;
     int ret = 0;

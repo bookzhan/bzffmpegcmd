@@ -50,6 +50,9 @@ int executeFFmpegCommand4TotalTime(int64_t handle, const char *in_command,
         return -1;
     }
     if (!hasRegistered) {
+#if CONFIG_AVDEVICE
+        avdevice_register_all();
+#endif
         avformat_network_init();
         hasRegistered = true;
     }
