@@ -33,7 +33,11 @@ bool JvmManager::getJNIEnv(JNIEnv **pJNIEnv) {
     if (NULL != *pJNIEnv) {
         return false;
     } else {
-        bzJavaVM->AttachCurrentThread(pJNIEnv, NULL);
+        JavaVMAttachArgs args;
+        args.version = JvmManager::JNI_VERSION;
+        args.name = "BZJvmManager";
+        args.group = NULL;
+        bzJavaVM->AttachCurrentThread(pJNIEnv, &args);
         return true;
     }
 }
