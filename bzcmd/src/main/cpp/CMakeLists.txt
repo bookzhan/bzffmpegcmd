@@ -21,6 +21,8 @@ add_library( # Sets the name of the library.
         cmdutilt/ffmpeg_filter.c;
         cmdutilt/ffmpeg_hw.c;
         cmdutilt/ffmpeg_mux.c;
+        cmdutilt/ffmpeg_dec.c;
+        cmdutilt/ffmpeg_enc.c;
         cmdutilt/ffmpeg_mux_init.c;
         cmdutilt/ffmpeg_opt.c;
         cmdutilt/objpool.c;
@@ -28,6 +30,7 @@ add_library( # Sets the name of the library.
         cmdutilt/sync_queue.c;
         cmdutilt/thread_queue.c;
         cmdutilt/ffmpeg.c;
+        cmdutilt/ffmpeg_sched.c;
 
         cmdutilt/JvmManager.cpp;
         cmdutilt/ffmpeg_cmd.c;

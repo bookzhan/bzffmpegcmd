@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include "ffmpeg.h"
+#include "avdevice.h"
 
 //保证同时只能一个线程执行
 static pthread_mutex_t cmdLock;

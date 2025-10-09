@@ -27,7 +27,6 @@
 #include "libavutil/attributes_internal.h"
 #include "libavutil/common.h"
 #include "config.h"
-#include "../libavutil/attributes.h"
 
 #define MAX_NEG_CROP 1024
 
@@ -40,8 +39,6 @@ extern const uint8_t ff_zigzag_scan[16+1];
 
 #if   ARCH_ARM
 #   include "arm/mathops.h"
-#elif ARCH_AVR32
-#   include "avr32/mathops.h"
 #elif ARCH_MIPS
 #   include "mips/mathops.h"
 #elif ARCH_PPC
