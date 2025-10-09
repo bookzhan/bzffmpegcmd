@@ -84,9 +84,9 @@ afterEvaluate {
     }
 }
 
-tasks.withType(PublishToMavenRepository) { it.dependsOn lint }
+tasks.withType(PublishToMavenRepository).configureEach { it.dependsOn lint }
 
-task androidSourcesJar(type: Jar) {
+tasks.register('androidSourcesJar', Jar) {
     archiveClassifier.set('sources')
     from android.sourceSets.main.java.getSrcDirs()
 }
