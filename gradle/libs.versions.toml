@@ -1,0 +1,18 @@
+[versions]
+agp = "8.13.0"
+appcompat = "1.7.1"
+bzcommon = "1.1.38"
+kotlin = "2.2.20"
+junit = "4.13.2"
+
+
+[libraries]
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+bzcommon = { module = "com.guaishou.bzlib:bzcommon", version.ref = "bzcommon" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+

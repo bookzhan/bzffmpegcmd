@@ -2,22 +2,15 @@ apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 
 android {
-    compileSdkVersion 33
+    namespace = "com.luoye.bzcmdlib"
+    compileSdk = 36
 
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 33
-        versionCode 1
-        versionName "1.0"
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles 'consumer-rules.pro'
-        externalNativeBuild {
-            cmake {
-                arguments '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON'
-                cppFlags "-std=c++11"
-            }
-        }
+        minSdk = 24
+        targetSdk = 36
+        versionCode = 1
+        versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -35,6 +28,11 @@ android {
     ndkVersion '28.2.13676358'
     lint {
         abortOnError false
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
 }
 
@@ -57,28 +55,28 @@ if (System.getenv('NEXUS_PASSWORD')) {
     NEXUS_PASSWORD = System.getenv('NEXUS_PASSWORD')
 }
 
-afterEvaluate {
-    publishing {
-        publications {
-            release(MavenPublication) {
-                from components.release
-                groupId = POM_GROUP_ID
-                artifactId = POM_ATRIFACT_ID
-                artifact androidSourcesJar
-                version = RELEASE_SNAPSHOT ? POM_VERSION + "-SNAPSHOT" : POM_VERSION
-            }
-        }
-        repositories {
-            maven {
-                url RELEASE_SNAPSHOT ? POM_URL_SNAP : POM_URL
-                credentials {
-                    username NEXUS_USER
-                    password NEXUS_PASSWORD
-                }
-            }
-        }
-    }
-}
+//afterEvaluate {
+//    publishing {
+//        publications {
+//            release(MavenPublication) {
+//                from components.release
+//                groupId = POM_GROUP_ID
+//                artifactId = POM_ATRIFACT_ID
+//                artifact androidSourcesJar
+//                version = RELEASE_SNAPSHOT ? POM_VERSION + "-SNAPSHOT" : POM_VERSION
+//            }
+//        }
+//        repositories {
+//            maven {
+//                url RELEASE_SNAPSHOT ? POM_URL_SNAP : POM_URL
+//                credentials {
+//                    username NEXUS_USER
+//                    password NEXUS_PASSWORD
+//                }
+//            }
+//        }
+//    }
+//}
 tasks.withType(PublishToMavenRepository) { it.dependsOn lint }
 
 task androidSourcesJar(type: Jar) {
