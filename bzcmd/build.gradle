@@ -34,6 +34,13 @@ android {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
     }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
 }
 
 ext {
@@ -46,7 +53,7 @@ ext {
 
     POM_GROUP_ID = 'com.guaishou.bzlib'
     POM_ATRIFACT_ID = 'bzffmpegcmd'
-    POM_VERSION = '1.0.28'
+    POM_VERSION = '1.0.29'
 }
 if (System.getenv('NEXUS_USER')) {
     NEXUS_USER = System.getenv('NEXUS_USER')
@@ -55,28 +62,28 @@ if (System.getenv('NEXUS_PASSWORD')) {
     NEXUS_PASSWORD = System.getenv('NEXUS_PASSWORD')
 }
 
-//afterEvaluate {
-//    publishing {
-//        publications {
-//            release(MavenPublication) {
-//                from components.release
-//                groupId = POM_GROUP_ID
-//                artifactId = POM_ATRIFACT_ID
-//                artifact androidSourcesJar
-//                version = RELEASE_SNAPSHOT ? POM_VERSION + "-SNAPSHOT" : POM_VERSION
-//            }
-//        }
-//        repositories {
-//            maven {
-//                url RELEASE_SNAPSHOT ? POM_URL_SNAP : POM_URL
-//                credentials {
-//                    username NEXUS_USER
-//                    password NEXUS_PASSWORD
-//                }
-//            }
-//        }
-//    }
-//}
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = POM_GROUP_ID
+                artifactId = POM_ATRIFACT_ID
+                version = RELEASE_SNAPSHOT ? POM_VERSION + "-SNAPSHOT" : POM_VERSION
+            }
+        }
+        repositories {
+            maven {
+                url RELEASE_SNAPSHOT ? POM_URL_SNAP : POM_URL
+                credentials {
+                    username NEXUS_USER
+                    password NEXUS_PASSWORD
+                }
+            }
+        }
+    }
+}
+
 tasks.withType(PublishToMavenRepository) { it.dependsOn lint }
 
 task androidSourcesJar(type: Jar) {
